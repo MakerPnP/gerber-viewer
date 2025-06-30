@@ -2,6 +2,10 @@ use std::collections::{HashMap, HashSet};
 use std::ops::{Add, Range};
 use std::sync::Arc;
 
+use gerber_types::{
+    Aperture, ApertureDefinition, ApertureMacro, Command, Coordinates, DCode, ExtendedCode, FunctionCode, GCode,
+    MacroContent, MacroDecimal, Operation, VariableDefinition,
+};
 use gerber_types::{ApertureBlock, Circle, InterpolationMode, QuadrantMode, StepAndRepeat};
 use log::{debug, error, info, trace, warn};
 use nalgebra::{Point2, Vector2};
@@ -10,12 +14,8 @@ use super::expressions::{
     evaluate_expression, macro_boolean_to_bool, macro_decimal_pair_to_f64, macro_decimal_to_f64, macro_integer_to_u32,
     ExpressionEvaluationError, MacroContext,
 };
-use super::gerber_types::{
-    Aperture, ApertureDefinition, ApertureMacro, Command, Coordinates, DCode, ExtendedCode, FunctionCode, GCode,
-    MacroContent, MacroDecimal, Operation, VariableDefinition,
-};
 use super::spacial::deduplicate::DedupEpsilon;
-use super::{geometry, gerber_types, ToVector};
+use super::{geometry, ToVector};
 use crate::geometry::BoundingBox;
 use crate::geometry::PolygonMesh;
 use crate::types::{Exposure, Winding};
@@ -61,6 +61,7 @@ impl GerberLayer {
         }
     }
 
+    #[allow(unused)]
     pub(crate) fn primitives(&self) -> &[GerberPrimitive] {
         &self.gerber_primitives
     }

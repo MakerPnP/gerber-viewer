@@ -1,5 +1,6 @@
 use std::ops::Mul;
 
+#[cfg(feature = "egui")]
 use egui::Vec2b;
 use nalgebra::{Point2, Vector2};
 
