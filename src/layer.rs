@@ -179,7 +179,9 @@ impl WithBoundingBox for PolygonGerberPrimitive {
 }
 
 impl GerberLayer {
-    fn update_position(current_pos: &mut Point2<f64>, coords: &Coordinates, offset: Vector2<f64>) {
+    fn update_position(current_pos: &mut Point2<f64>, coords: &Option<Coordinates>, offset: Vector2<f64>) {
+        let Some(coords) = coords else { return };
+
         let (x, y) = (
             coords
                 .x
@@ -1559,11 +1561,11 @@ mod circular_plotting_tests {
 
         // Start at top-left corner
         commands.push(
-            DCode::Operation(Operation::Move(Coordinates::new(
+            DCode::Operation(Operation::Move(Some(Coordinates::new(
                 CoordinateNumber::try_from(5.0).unwrap(),
                 CoordinateNumber::try_from(15.0).unwrap(),
                 format,
-            )))
+            ))))
             .into(),
         );
 
@@ -1574,11 +1576,11 @@ mod circular_plotting_tests {
         commands.push(GCode::InterpolationMode(InterpolationMode::CounterclockwiseCircular).into());
         commands.push(
             DCode::Operation(Operation::Interpolate(
-                Coordinates::new(
+                Some(Coordinates::new(
                     CoordinateNumber::try_from(0.0).unwrap(),
                     CoordinateNumber::try_from(10.0).unwrap(),
                     format,
-                ),
+                )),
                 Some(CoordinateOffset::new(
                     CoordinateNumber::try_from(0.0).unwrap(),
                     CoordinateNumber::try_from(-5.0).unwrap(),
@@ -1592,11 +1594,11 @@ mod circular_plotting_tests {
         commands.push(GCode::InterpolationMode(InterpolationMode::Linear).into());
         commands.push(
             DCode::Operation(Operation::Interpolate(
-                Coordinates::new(
+                Some(Coordinates::new(
                     CoordinateNumber::try_from(0.0).unwrap(),
                     CoordinateNumber::try_from(5.0).unwrap(),
                     format,
-                ),
+                )),
                 None,
             ))
             .into(),
@@ -1606,11 +1608,11 @@ mod circular_plotting_tests {
         commands.push(GCode::InterpolationMode(InterpolationMode::CounterclockwiseCircular).into());
         commands.push(
             DCode::Operation(Operation::Interpolate(
-                Coordinates::new(
+                Some(Coordinates::new(
                     CoordinateNumber::try_from(5.0).unwrap(),
                     CoordinateNumber::try_from(0.0).unwrap(),
                     format,
-                ),
+                )),
                 Some(CoordinateOffset::new(
                     CoordinateNumber::try_from(5.0).unwrap(),
                     CoordinateNumber::try_from(0.0).unwrap(),
@@ -1624,11 +1626,11 @@ mod circular_plotting_tests {
         commands.push(GCode::InterpolationMode(InterpolationMode::Linear).into());
         commands.push(
             DCode::Operation(Operation::Interpolate(
-                Coordinates::new(
+                Some(Coordinates::new(
                     CoordinateNumber::try_from(15.0).unwrap(),
                     CoordinateNumber::try_from(0.0).unwrap(),
                     format,
-                ),
+                )),
                 None,
             ))
             .into(),
@@ -1638,11 +1640,11 @@ mod circular_plotting_tests {
         commands.push(GCode::InterpolationMode(InterpolationMode::CounterclockwiseCircular).into());
         commands.push(
             DCode::Operation(Operation::Interpolate(
-                Coordinates::new(
+                Some(Coordinates::new(
                     CoordinateNumber::try_from(20.0).unwrap(),
                     CoordinateNumber::try_from(5.0).unwrap(),
                     format,
-                ),
+                )),
                 Some(CoordinateOffset::new(
                     CoordinateNumber::try_from(0.0).unwrap(),
                     CoordinateNumber::try_from(5.0).unwrap(),
@@ -1656,11 +1658,11 @@ mod circular_plotting_tests {
         commands.push(GCode::InterpolationMode(InterpolationMode::Linear).into());
         commands.push(
             DCode::Operation(Operation::Interpolate(
-                Coordinates::new(
+                Some(Coordinates::new(
                     CoordinateNumber::try_from(20.0).unwrap(),
                     CoordinateNumber::try_from(10.0).unwrap(),
                     format,
-                ),
+                )),
                 None,
             ))
             .into(),
@@ -1670,11 +1672,11 @@ mod circular_plotting_tests {
         commands.push(GCode::InterpolationMode(InterpolationMode::CounterclockwiseCircular).into());
         commands.push(
             DCode::Operation(Operation::Interpolate(
-                Coordinates::new(
+                Some(Coordinates::new(
                     CoordinateNumber::try_from(15.0).unwrap(),
                     CoordinateNumber::try_from(15.0).unwrap(),
                     format,
-                ),
+                )),
                 Some(CoordinateOffset::new(
                     CoordinateNumber::try_from(-5.0).unwrap(),
                     CoordinateNumber::try_from(0.0).unwrap(),
@@ -1688,11 +1690,11 @@ mod circular_plotting_tests {
         commands.push(GCode::InterpolationMode(InterpolationMode::Linear).into());
         commands.push(
             DCode::Operation(Operation::Interpolate(
-                Coordinates::new(
+                Some(Coordinates::new(
                     CoordinateNumber::try_from(5.0).unwrap(),
                     CoordinateNumber::try_from(15.0).unwrap(),
                     format,
-                ),
+                )),
                 None,
             ))
             .into(),
@@ -1947,13 +1949,13 @@ mod circle_aperture_tests {
             Command::ExtendedCode(ExtendedCode::Unit(Unit::Millimeters)),
             Command::ExtendedCode(ExtendedCode::ApertureDefinition(ApertureDefinition::new(11, aperture))),
             Command::FunctionCode(FunctionCode::DCode(DCode::SelectAperture(11))),
-            Command::FunctionCode(FunctionCode::DCode(DCode::Operation(Operation::Flash(
+            Command::FunctionCode(FunctionCode::DCode(DCode::Operation(Operation::Flash(Some(
                 Coordinates::new(
                     CoordinateNumber::try_from(center.x).unwrap(),
                     CoordinateNumber::try_from(center.y).unwrap(),
                     format,
                 ),
-            )))),
+            ))))),
         ];
 
         // and
