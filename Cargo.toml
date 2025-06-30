@@ -1,8 +1,23 @@
 [package]
 name = "gerber_viewer"
 version = "0.1.0"
+documentation = "https://docs.rs/gerber-viewer/"
+repository = "https://github.com/MakerPnP/gerber-viewer"
+homepage = "https://github.com/MakerPnP/gerber-viewer"
+license = "MIT OR Apache-2.0"
+authors = [
+    "Dominic Clifton <me@dominicclifton.name>",
+]
+description = "A cargo crate for rendering Gerber files."
+readme = "README.md"
+keywords = ["gerber", "rs274x", "render", "gui", "egui"]
+include = [
+    "**/*.rs",
+    "Cargo.toml",
+    "README.md",
+    "LICENSE-*",
+]
 edition = "2021"
-authors = ["Dominic Clifton <me@dominicclifton.name>"]
 
 [dependencies]
 # Rendering (optional, see README.md)
