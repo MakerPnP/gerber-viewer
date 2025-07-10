@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use gerber_types::{
     Aperture, ApertureDefinition, ApertureMacro, Command, Coordinates, DCode, ExtendedCode, FunctionCode, GCode,
-    MacroContent, MacroDecimal, Operation, VariableDefinition,
+    ImageRotation, MacroContent, MacroDecimal, Operation, VariableDefinition,
 };
 use gerber_types::{ApertureBlock, Circle, InterpolationMode, QuadrantMode, StepAndRepeat};
 use log::{debug, error, info, trace, warn};
@@ -15,7 +15,7 @@ use super::expressions::{
     ExpressionEvaluationError, MacroContext,
 };
 use super::spacial::deduplicate::DedupEpsilon;
-use super::{geometry, ToVector};
+use super::{geometry, GerberImageTransform, ToVector};
 use crate::geometry::BoundingBox;
 use crate::geometry::PolygonMesh;
 use crate::types::{Exposure, Winding};
@@ -30,17 +30,60 @@ pub struct GerberLayer {
     commands: Vec<Command>,
     gerber_primitives: Vec<GerberPrimitive>,
     bounding_box: BoundingBox,
+
+    image_transform: GerberImageTransform,
+}
+
+impl GerberLayer {
+    fn build_image_transform(commands: &Vec<Command>) -> GerberImageTransform {
+        let mut transform = GerberImageTransform::default();
+
+        for cmd in commands.iter() {
+            match cmd {
+                Command::ExtendedCode(ExtendedCode::AxisSelect(axis_select)) => {
+                    transform.axis_select = *axis_select;
+                }
+                Command::ExtendedCode(ExtendedCode::ScaleImage(image_scaling)) => {
+                    transform.scale[0] = image_scaling.a;
+                    transform.scale[1] = image_scaling.b;
+                }
+                Command::ExtendedCode(ExtendedCode::OffsetImage(image_offset)) => {
+                    transform.offset[0] = image_offset.a;
+                    transform.offset[1] = image_offset.b;
+                }
+                Command::ExtendedCode(ExtendedCode::RotateImage(image_rotation)) => {
+                    let degrees: f64 = match image_rotation {
+                        ImageRotation::None => 0.0,
+                        ImageRotation::CCW_90 => 90.0,
+                        ImageRotation::CCW_180 => 180.0,
+                        ImageRotation::CCW_270 => 270.0,
+                    };
+
+                    transform.rotation = degrees.to_radians();
+                }
+                Command::ExtendedCode(ExtendedCode::MirrorImage(image_mirroring)) => {
+                    transform.mirroring = *image_mirroring;
+                }
+
+                _ => {}
+            }
+        }
+
+        transform
+    }
 }
 
 impl GerberLayer {
     pub fn new(commands: Vec<Command>) -> Self {
         let gerber_primitives = GerberLayer::build_primitives(&commands);
         let bounding_box = GerberLayer::calculate_bounding_box(&gerber_primitives);
+        let image_transform = GerberLayer::build_image_transform(&commands);
 
         Self {
             commands,
             gerber_primitives,
             bounding_box,
+            image_transform,
         }
     }
 
@@ -64,6 +107,10 @@ impl GerberLayer {
     #[allow(unused)]
     pub(crate) fn primitives(&self) -> &[GerberPrimitive] {
         &self.gerber_primitives
+    }
+
+    pub fn image_transform(&self) -> &GerberImageTransform {
+        &self.image_transform
     }
 }
 

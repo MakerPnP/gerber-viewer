@@ -9,6 +9,13 @@ G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
 %LPD*%
 G01*
 
+G04 try these commands for image transforms *
+G04 %MIB1*% *
+G04 %IR180*% *
+G04 %SFA1.5B3*% *
+G04 %OFA60B60*% *
+G04 %ASAYBX*% *
+
 %AMRoundRect*
 0 Rectangle with rounded corners*
 0 $1 Rounding radius*

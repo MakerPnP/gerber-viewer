@@ -48,7 +48,10 @@ impl GerberRenderer {
         configuration: &RenderConfiguration,
         transform: &GerberTransform,
     ) {
-        let transform_matrix = transform.to_matrix();
+        let render_transform_matrix = transform.to_matrix();
+        let image_transform_matrix = layer.image_transform().to_matrix();
+
+        let transform_matrix = image_transform_matrix * render_transform_matrix;
 
         for (index, primitive) in layer.primitives().iter().enumerate() {
             let color = match configuration.use_unique_shape_colors {

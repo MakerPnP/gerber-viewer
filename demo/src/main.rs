@@ -3,7 +3,7 @@ use std::io::BufReader;
 use eframe::emath::Rect;
 use eframe::epaint::Color32;
 use egui::ViewportBuilder;
-use nalgebra::Vector2;
+use nalgebra::{Point2, Vector2, Vector3};
 use gerber_viewer::gerber_parser::parse;
 use gerber_viewer::{draw_arrow, draw_crosshair, draw_marker, draw_outline, GerberLayer, GerberRenderer, RenderConfiguration, ToPosition, UiState, ViewState};
 use gerber_viewer::BoundingBox;
@@ -133,12 +133,22 @@ impl eframe::App for DemoApp {
         //
 
         let bbox = self.gerber_layer.bounding_box();
+        let image_transform_matrix = self.gerber_layer.image_transform().to_matrix();
+        let render_transform_matrix = self.transform.to_matrix();
+        
+        let matrix = image_transform_matrix * render_transform_matrix;  
 
         // Compute rotated outline (GREEN)
         let outline_vertices: Vec<_> = bbox
             .vertices()
             .into_iter()
-            .map(|v| self.transform.apply_to_position(v))
+            .map(|v| {
+                // Convert to homogeneous coordinates
+                let point_vec = Vector3::new(v.x, v.y, 1.0);
+
+                let transformed = matrix * point_vec;
+                Point2::new(transformed.x, transformed.y)
+            })
             .collect();
 
         // Compute transformed AABB (RED)

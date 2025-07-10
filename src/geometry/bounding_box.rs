@@ -1,5 +1,5 @@
 use log::trace;
-use nalgebra::{Point2, Vector2};
+use nalgebra::{Matrix3, Point2, Vector2, Vector3};
 
 use crate::geometry::transform::GerberTransform;
 
@@ -49,6 +49,31 @@ impl BoundingBox {
     }
     pub fn height(&self) -> f64 {
         self.max.y - self.min.y
+    }
+
+    pub fn apply_transform_matrix(&self, matrix: Matrix3<f64>) -> Self {
+        // Step 1: Transform each corner of the original bbox
+        let transformed_bbox_vertices: Vec<_> = self
+            .vertices()
+            .into_iter()
+            .map(|v| {
+                // Convert to homogeneous coordinates
+                let point_vec = Vector3::new(v.x, v.y, 1.0);
+
+                let transformed = matrix * point_vec;
+                Point2::new(transformed.x, transformed.y)
+            })
+            .collect();
+
+        // Step 2: Create a new axis-aligned bbox from transformed points (for viewport fitting)
+        let result = BoundingBox::from_points(&transformed_bbox_vertices);
+        trace!(
+            "Applying transform matrix to bbox.  matrix {:?}: before: {:?}, after: {:?}",
+            matrix,
+            self,
+            result
+        );
+        result
     }
 
     pub fn apply_transform(&self, transform: &GerberTransform) -> Self {
