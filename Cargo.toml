@@ -24,13 +24,13 @@ edition = "2021"
 egui = { version = "0.31.1", optional = true }
 
 # Gerber files
-gerber-types = "0.5.0"
+gerber-types = "0.6.0"
 # currently un-released, using latest gerber_types with updates to support macro expressions
 #gerber-types = { git = "https://github.com/MakerPnP/gerber-types.git", rev = "bc303fa1d946933301d3459bef42a0c984683301"}
 #gerber-types = { path = "../gerber-types" }
 
 # Gerber parser (optional, see README.md)
-gerber_parser = { version = "0.2.1", optional = true }
+gerber_parser = { version = "0.3.0", optional = true }
 #gerber_parser = { git = "https://github.com/makerpnp/gerber-parser.git", rev = "fcad868d9e1423d49a5acdb9bfc37016b034f445", optional = true }
 #gerber_parser = { path = "../gerber-parser", optional = true }
 
