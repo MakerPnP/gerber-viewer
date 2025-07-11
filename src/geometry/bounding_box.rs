@@ -51,7 +51,7 @@ impl BoundingBox {
         self.max.y - self.min.y
     }
 
-    pub fn apply_transform_matrix(&self, matrix: Matrix3<f64>) -> Self {
+    pub fn apply_transform_matrix(&self, matrix: &Matrix3<f64>) -> Self {
         // Step 1: Transform each corner of the original bbox
         let transformed_bbox_vertices: Vec<_> = self
             .vertices()
