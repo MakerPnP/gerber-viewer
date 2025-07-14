@@ -11,6 +11,10 @@ Possible log types:
 - `[fixed]` for any bug fixes.
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
+### v0.3.0 (2025-07-11)
+
+- [changed] Bump gerber-types and gerber-parser.
+
 ### v0.2.0 (2025-07-10)
 
 - [added] Support for legacy/deprecated gerber commands: MI, SF, OF, IR, and AS.
