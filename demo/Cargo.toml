@@ -5,8 +5,8 @@ edition = "2024"
 authors = ["Dominic Clifton <me@dominicclifton.name>"]
 
 [dependencies]
-egui = "0.31.1"
-eframe = "0.31.1"
+egui = "0.32.0"
+eframe = "0.32.0"
 gerber_viewer = { path = "..", features = ["egui", "parser", "types"] }
 env_logger = "0.11.8"
 profiling = "1.0.16"
