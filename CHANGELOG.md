@@ -11,6 +11,10 @@ Possible log types:
 - `[fixed]` for any bug fixes.
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
+### v0.4.0 (2025-07-14)
+
+- [changed] Support egui 0.32.0
+
 ### v0.3.0 (2025-07-11)
 
 - [changed] Bump gerber-types and gerber-parser.
