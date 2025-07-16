@@ -404,7 +404,7 @@ impl Renderable for PolygonGerberPrimitive {
                     *pos,
                     Align2::CENTER_CENTER,
                     format!("{}", i),
-                    FontId::monospace(8.0),
+                    FontId::monospace(10.0),
                     Color32::RED,
                 );
             }
