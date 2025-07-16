@@ -54,6 +54,7 @@ impl DemoApp {
         //let demo_str = include_str!("../assets/diptrace-region-test-1.gbr").as_bytes();
         //let demo_str = include_str!("../assets/rectangles.gbr").as_bytes();
         //let demo_str = include_str!("../assets/region-non-overlapping-contours.gbr").as_bytes();
+        //let demo_str = include_str!("../assets/easyeda-unclosed-region-test-1.gbr").as_bytes();
         //let demo_str = include_str!("../assets/arcs.gbr").as_bytes();
         //let demo_str = include_str!("../assets/arcs-90.gbr").as_bytes();
         //let demo_str = include_str!("../assets/macro-centerline.gbr").as_bytes();

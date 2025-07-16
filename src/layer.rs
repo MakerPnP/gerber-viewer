@@ -952,6 +952,8 @@ impl GerberLayer {
                                     // Now start a new segment
                                     Self::region_begin(&mut current_region_vertices, &mut in_region);
                                     current_region_vertices.push(end);
+                                } else {
+                                    current_region_vertices.push(end);
                                 }
                             }
                             current_pos = end;
@@ -1337,45 +1339,66 @@ impl GerberLayer {
         current_region_vertices: &mut Vec<Point2<f64>>,
         in_region: &mut bool,
     ) {
-        if *in_region && current_region_vertices.len() >= 3 {
-            // Find bounding box
-            let min_x = current_region_vertices
-                .iter()
-                .map(|position| position.x)
-                .fold(f64::INFINITY, f64::min);
-            let max_x = current_region_vertices
-                .iter()
-                .map(|position| position.x)
-                .fold(f64::NEG_INFINITY, f64::max);
-            let min_y = current_region_vertices
-                .iter()
-                .map(|position| position.y)
-                .fold(f64::INFINITY, f64::min);
-            let max_y = current_region_vertices
-                .iter()
-                .map(|position| position.y)
-                .fold(f64::NEG_INFINITY, f64::max);
-
-            // Calculate center from bounding box
-            let center_x = (min_x + max_x) / 2.0;
-            let center_y = (min_y + max_y) / 2.0;
-
-            let center = Vector2::new(center_x, center_y);
-
-            // Make vertices relative to center
-            let relative_vertices: Vec<Point2<f64>> = current_region_vertices
-                .iter()
-                .map(|position| *position - center)
-                .collect();
-
-            let polygon = GerberPrimitive::new_polygon(GerberPolygon {
-                center: Point2::new(center_x, center_y),
-                vertices: relative_vertices,
-                exposure: Exposure::Add,
-            });
-            layer_primitives.push(polygon);
+        if !*in_region {
+            return;
         }
         *in_region = false;
+
+        // SPEC-ISSUE: closed-vs-unclosed-regions - EasyEDA v6.5.48 does not close regions properly
+        if current_region_vertices.len() >= 2 {
+            let first = current_region_vertices.first().unwrap();
+            let last = current_region_vertices.last().unwrap();
+            if first != last {
+                // TODO add some context to the error message, e.g. command indexes of the start and end of the region
+                warn!("Unclosed region detected");
+            } else {
+                // `GerberPolygon` expects an un-closed polygon vertices, so REMOVE the last coordinate from the vertices
+                current_region_vertices.pop();
+            }
+        }
+
+        trace!("current_region_vertices: {:?}", current_region_vertices);
+
+        if current_region_vertices.len() < 3 {
+            return;
+        }
+
+        // Find bounding box
+        let min_x = current_region_vertices
+            .iter()
+            .map(|position| position.x)
+            .fold(f64::INFINITY, f64::min);
+        let max_x = current_region_vertices
+            .iter()
+            .map(|position| position.x)
+            .fold(f64::NEG_INFINITY, f64::max);
+        let min_y = current_region_vertices
+            .iter()
+            .map(|position| position.y)
+            .fold(f64::INFINITY, f64::min);
+        let max_y = current_region_vertices
+            .iter()
+            .map(|position| position.y)
+            .fold(f64::NEG_INFINITY, f64::max);
+
+        // Calculate center from bounding box
+        let center_x = (min_x + max_x) / 2.0;
+        let center_y = (min_y + max_y) / 2.0;
+
+        let center = Vector2::new(center_x, center_y);
+
+        // Make vertices relative to center
+        let relative_vertices: Vec<Point2<f64>> = current_region_vertices
+            .iter()
+            .map(|position| *position - center)
+            .collect();
+
+        let polygon = GerberPrimitive::new_polygon(GerberPolygon {
+            center: Point2::new(center_x, center_y),
+            vertices: relative_vertices,
+            exposure: Exposure::Add,
+        });
+        layer_primitives.push(polygon);
     }
 }
 

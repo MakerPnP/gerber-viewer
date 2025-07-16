@@ -1,0 +1,31 @@
+G04 Layer: TopPasteMaskLayer*
+G04 EasyEDA v6.5.48, 2025-02-06 21:59:45*
+G04 df5b2346b8d14b29941125227818edc0,083644a034d74e9180b627a4a6323cbd,10*
+G04 Gerber Generator version 0.2*
+G04 Scale: 100 percent, Rotated: No, Reflected: No *
+G04 Dimensions in inches *
+G04 leading zeros omitted , absolute positions ,3 integer and 6 decimal *
+%FSLAX36Y36*%
+%MOIN*%
+
+%LPD*%
+
+G04 SPEC-ISSUE: closed-vs-unclosed-regions - EasyEDA v6.5.48 does not close regions properly*
+
+G36*
+X262960Y-2792280D02*
+G01*
+X260980Y-2794260D01*
+X260980Y-2825740D01*
+X262960Y-2827720D01*
+X294440Y-2827720D01*
+X296420Y-2825740D01*
+X296420Y-2816780D01*
+X281860Y-2816780D01*
+X281860Y-2803780D01*
+X296420Y-2803780D01*
+X296420Y-2794260D01*
+X294440Y-2792280D01*
+G37*
+
+M02*

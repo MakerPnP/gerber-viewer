@@ -11,6 +11,10 @@ Possible log types:
 - `[fixed]` for any bug fixes.
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
+### (unreleased)
+
+- [changed] Add support for unclosed regions, as found in some EasyEDA generated files. SPEC-ISSUE: closed-vs-unclosed-regions
+
 ### v0.4.0 (2025-07-14)
 
 - [changed] Support egui 0.32.0
