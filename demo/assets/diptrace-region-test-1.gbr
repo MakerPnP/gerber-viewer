@@ -4,10 +4,13 @@
 %MOMM*%
 %TF.FileFunction,Copper,L1,Top*%
 %TF.Part,Single*%
+
+%ADD10R,2.00X4.00*%
+
 G75*
 G01*
 %LPD*%
-D24*
+D10*
 G36*
 X2637293Y2022500D2*
 X2637500Y2035000D1*
