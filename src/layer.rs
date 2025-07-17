@@ -917,11 +917,11 @@ impl GerberLayer {
                 Command::FunctionCode(FunctionCode::GCode(GCode::RegionMode(enabled))) => {
                     if *enabled {
                         // G36 - Begin Region
-                        current_region = Some(Region::new());
+                        current_region = Some(Region::new(index));
                     } else {
                         // G37 - End Region
                         if let Some(region) = current_region.take() {
-                            if let Ok(primitive) = region.finalize() {
+                            if let Ok(primitive) = region.finalize(index) {
                                 layer_primitives.push(primitive);
                             }
                         }
@@ -945,11 +945,11 @@ impl GerberLayer {
                                 let mut region = current_region.take().unwrap();
 
                                 if !region.is_empty() {
-                                    if let Ok(primitive) = region.finalize() {
+                                    if let Ok(primitive) = region.finalize(index) {
                                         layer_primitives.push(primitive);
                                     }
 
-                                    region = Region::new();
+                                    region = Region::new(index);
                                 }
                                 region.push(end);
 
@@ -1335,6 +1335,7 @@ enum RegionError {
 
 struct Region {
     vertices: Vec<Point2<f64>>,
+    start_index: usize,
 }
 
 impl Region {
@@ -1344,9 +1345,10 @@ impl Region {
 }
 
 impl Region {
-    fn new() -> Self {
+    fn new(start_index: usize) -> Self {
         Self {
             vertices: Vec::new(),
+            start_index,
         }
     }
 
@@ -1354,14 +1356,16 @@ impl Region {
         self.vertices.push(point);
     }
 
-    fn finalize(mut self) -> Result<GerberPrimitive, RegionError> {
+    fn finalize(mut self, end_index: usize) -> Result<GerberPrimitive, RegionError> {
         // SPEC-ISSUE: closed-vs-unclosed-regions - EasyEDA v6.5.48 does not close regions properly
         if self.vertices.len() >= 2 {
             let first = self.vertices.first().unwrap();
             let last = self.vertices.last().unwrap();
             if first != last {
-                // TODO add some context to the error message, e.g. command indexes of the start and end of the region
-                warn!("Unclosed region detected");
+                warn!(
+                    "Unclosed region detected. start_index: {}, end_index: {}, first: {}, last: {}",
+                    self.start_index, end_index, first, last
+                );
             } else {
                 // `GerberPolygon` expects an un-closed polygon vertices, so REMOVE the last coordinate from the vertices
                 self.vertices.pop();
