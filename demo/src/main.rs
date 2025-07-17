@@ -105,8 +105,17 @@ impl DemoApp {
     }
 
     fn fit_view(&mut self, viewport: Rect) {
-        let bbox = self.gerber_layer.bounding_box();
-        self.view_state.fit_view(viewport, bbox, ZOOM_FACTOR);
+        let layer_bbox = self.gerber_layer.bounding_box();
+
+        let image_transform_matrix = self.gerber_layer.image_transform().to_matrix();
+        let layer_matrix = self.transform.to_matrix();
+
+        let matrix = image_transform_matrix * layer_matrix;
+
+        let layer_bbox = layer_bbox.apply_transform_matrix(&matrix);
+
+
+        self.view_state.fit_view(viewport, &layer_bbox, ZOOM_FACTOR);
         self.needs_view_fitting = false;
     }
 }
