@@ -732,8 +732,7 @@ impl GerberLayer {
         let mut aperture_selection_errors: HashSet<i32> = HashSet::new();
 
         // regions are a special case - they are defined by aperture codes
-        let mut current_region_vertices: Vec<Point2<f64>> = Vec::new();
-        let mut in_region = false;
+        let mut current_region = None;
 
         let mut index = 0;
 
@@ -918,10 +917,14 @@ impl GerberLayer {
                 Command::FunctionCode(FunctionCode::GCode(GCode::RegionMode(enabled))) => {
                     if *enabled {
                         // G36 - Begin Region
-                        Self::region_begin(&mut current_region_vertices, &mut in_region);
+                        current_region = Some(Region::new());
                     } else {
                         // G37 - End Region
-                        Self::region_finalize(&mut layer_primitives, &mut current_region_vertices, &mut in_region);
+                        if let Some(region) = current_region.take() {
+                            if let Ok(primitive) = region.finalize() {
+                                layer_primitives.push(primitive);
+                            }
+                        }
                     }
                 }
 
@@ -936,34 +939,30 @@ impl GerberLayer {
                         Operation::Move(coords) => {
                             let mut end = current_pos;
                             Self::update_position(&mut end, coords, step_repeat_offset + aperture_block_offset);
-                            if in_region {
+                            if current_region.is_some() {
                                 // In a region, a move operation starts a new path segment
                                 // However, we may not have any segments yet, i.e. G36 immediately followed by D02
-                                if !current_region_vertices.is_empty() {
-                                    // If we have vertices, close the current segment
-                                    current_region_vertices.push(*current_region_vertices.first().unwrap());
+                                let mut region = current_region.take().unwrap();
 
-                                    Self::region_finalize(
-                                        &mut layer_primitives,
-                                        &mut current_region_vertices,
-                                        &mut in_region,
-                                    );
+                                if !region.is_empty() {
+                                    if let Ok(primitive) = region.finalize() {
+                                        layer_primitives.push(primitive);
+                                    }
 
-                                    // Now start a new segment
-                                    Self::region_begin(&mut current_region_vertices, &mut in_region);
-                                    current_region_vertices.push(end);
-                                } else {
-                                    current_region_vertices.push(end);
+                                    region = Region::new();
                                 }
+                                region.push(end);
+
+                                current_region = Some(region);
                             }
                             current_pos = end;
                         }
                         Operation::Interpolate(coords, offset) => {
                             let mut end = current_pos;
                             Self::update_position(&mut end, coords, step_repeat_offset + aperture_block_offset);
-                            if in_region {
+                            if let Some(region) = &mut current_region {
                                 // Add vertex to the current region
-                                current_region_vertices.push(end);
+                                region.push(end);
                             } else {
                                 match current_aperture {
                                     // 2024.05 - 2.3 "Graphical objects"
@@ -1097,7 +1096,7 @@ impl GerberLayer {
                             current_pos = end;
                         }
                         Operation::Flash(coords, ..) => {
-                            if in_region {
+                            if current_region.is_some() {
                                 warn!("Flash operation found within region - ignoring");
                             } else {
                                 Self::update_position(
@@ -1328,55 +1327,71 @@ impl GerberLayer {
 
         layer_primitives
     }
+}
 
-    fn region_begin(current_region_vertices: &mut Vec<Point2<f64>>, in_region: &mut bool) {
-        *in_region = true;
-        current_region_vertices.clear();
+enum RegionError {
+    InsufficientVertices,
+}
+
+struct Region {
+    vertices: Vec<Point2<f64>>,
+}
+
+impl Region {
+    fn is_empty(&self) -> bool {
+        self.vertices.is_empty()
+    }
+}
+
+impl Region {
+    fn new() -> Self {
+        Self {
+            vertices: Vec::new(),
+        }
     }
 
-    fn region_finalize(
-        layer_primitives: &mut Vec<GerberPrimitive>,
-        current_region_vertices: &mut Vec<Point2<f64>>,
-        in_region: &mut bool,
-    ) {
-        if !*in_region {
-            return;
-        }
-        *in_region = false;
+    fn push(&mut self, point: Point2<f64>) {
+        self.vertices.push(point);
+    }
 
+    fn finalize(mut self) -> Result<GerberPrimitive, RegionError> {
         // SPEC-ISSUE: closed-vs-unclosed-regions - EasyEDA v6.5.48 does not close regions properly
-        if current_region_vertices.len() >= 2 {
-            let first = current_region_vertices.first().unwrap();
-            let last = current_region_vertices.last().unwrap();
+        if self.vertices.len() >= 2 {
+            let first = self.vertices.first().unwrap();
+            let last = self.vertices.last().unwrap();
             if first != last {
                 // TODO add some context to the error message, e.g. command indexes of the start and end of the region
                 warn!("Unclosed region detected");
             } else {
                 // `GerberPolygon` expects an un-closed polygon vertices, so REMOVE the last coordinate from the vertices
-                current_region_vertices.pop();
+                self.vertices.pop();
             }
         }
 
-        trace!("current_region_vertices: {:?}", current_region_vertices);
+        trace!("current_region_vertices: {:?}", self.vertices);
 
-        if current_region_vertices.len() < 3 {
-            return;
+        if self.vertices.len() < 3 {
+            return Err(RegionError::InsufficientVertices);
         }
 
         // Find bounding box
-        let min_x = current_region_vertices
+        let min_x = self
+            .vertices
             .iter()
             .map(|position| position.x)
             .fold(f64::INFINITY, f64::min);
-        let max_x = current_region_vertices
+        let max_x = self
+            .vertices
             .iter()
             .map(|position| position.x)
             .fold(f64::NEG_INFINITY, f64::max);
-        let min_y = current_region_vertices
+        let min_y = self
+            .vertices
             .iter()
             .map(|position| position.y)
             .fold(f64::INFINITY, f64::min);
-        let max_y = current_region_vertices
+        let max_y = self
+            .vertices
             .iter()
             .map(|position| position.y)
             .fold(f64::NEG_INFINITY, f64::max);
@@ -1388,7 +1403,8 @@ impl GerberLayer {
         let center = Vector2::new(center_x, center_y);
 
         // Make vertices relative to center
-        let relative_vertices: Vec<Point2<f64>> = current_region_vertices
+        let relative_vertices: Vec<Point2<f64>> = self
+            .vertices
             .iter()
             .map(|position| *position - center)
             .collect();
@@ -1398,7 +1414,8 @@ impl GerberLayer {
             vertices: relative_vertices,
             exposure: Exposure::Add,
         });
-        layer_primitives.push(polygon);
+
+        Ok(polygon)
     }
 }
 
