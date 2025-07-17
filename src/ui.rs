@@ -113,9 +113,6 @@ impl ViewState {
     /// inputs, viewport of UI area to render.
     /// bounding box of all gerber layers to render.
     /// initial zoom factor, e.g. 0.5 for 50%.
-    /// the initial transform.
-    ///
-    /// often you'll want to reset the `transform` before calling this.
     pub fn fit_view(&mut self, viewport: Rect, bbox: &BoundingBox, initial_zoom_factor: f32) {
         let content_width = bbox.width();
         let content_height = bbox.height();
