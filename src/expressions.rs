@@ -1,5 +1,5 @@
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 use std::str::Chars;
 
 use gerber_types::{MacroBoolean, MacroDecimal, MacroInteger};

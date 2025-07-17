@@ -27,9 +27,7 @@ impl UiState {
 
         trace!(
             "update. view_state: {:?}, viewport: {:?}, cursor_gerber_coords: {:?}",
-            view_state,
-            viewport,
-            self.cursor_gerber_coords
+            view_state, viewport, self.cursor_gerber_coords
         )
     }
 
@@ -127,10 +125,7 @@ impl ViewState {
 
         trace!(
             "Fit view. base_scale: {:.2}, scale: {:.2}, content_width: {:.2}, content_height: {:.2}",
-            self.base_scale,
-            scale,
-            content_width,
-            content_height
+            self.base_scale, scale, content_width, content_height
         );
         self.scale = scale;
 
@@ -160,9 +155,7 @@ impl ViewState {
         let zoom_level = (self.scale / reference_scale) * 100.0;
         trace!(
             "Zoom level: {:.1}%, scale: {:.2}, reference_scale: {:.2}",
-            zoom_level,
-            self.scale,
-            reference_scale
+            zoom_level, self.scale, reference_scale
         );
 
         zoom_level

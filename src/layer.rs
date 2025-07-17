@@ -11,11 +11,11 @@ use log::{debug, error, info, trace, warn};
 use nalgebra::{Point2, Vector2};
 
 use super::expressions::{
-    evaluate_expression, macro_boolean_to_bool, macro_decimal_pair_to_f64, macro_decimal_to_f64, macro_integer_to_u32,
-    ExpressionEvaluationError, MacroContext,
+    ExpressionEvaluationError, MacroContext, evaluate_expression, macro_boolean_to_bool, macro_decimal_pair_to_f64,
+    macro_decimal_to_f64, macro_integer_to_u32,
 };
 use super::spacial::deduplicate::DedupEpsilon;
-use super::{geometry, GerberImageTransform, ToVector};
+use super::{GerberImageTransform, ToVector, geometry};
 use crate::geometry::BoundingBox;
 use crate::geometry::PolygonMesh;
 use crate::types::{Exposure, Winding};
@@ -896,8 +896,7 @@ impl GerberLayer {
 
                                 trace!(
                                     "Step-and-repeat continue, state: {:?}, current_position: {:?}",
-                                    state,
-                                    current_pos
+                                    state, current_pos
                                 );
 
                                 index = state.start_index;
@@ -2015,9 +2014,9 @@ mod circle_aperture_tests {
     };
     use nalgebra::Point2;
 
+    use crate::ArcGerberPrimitive;
     use crate::testing::dump_gerber_source;
     use crate::types::Exposure;
-    use crate::ArcGerberPrimitive;
     use crate::{GerberLayer, GerberPrimitive};
 
     #[test]

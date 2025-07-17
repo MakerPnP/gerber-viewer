@@ -69,9 +69,7 @@ impl BoundingBox {
         let result = BoundingBox::from_points(&transformed_bbox_vertices);
         trace!(
             "Applying transform matrix to bbox.  matrix {:?}: before: {:?}, after: {:?}",
-            matrix,
-            self,
-            result
+            matrix, self, result
         );
         result
     }
@@ -88,9 +86,7 @@ impl BoundingBox {
         let result = BoundingBox::from_points(&transformed_bbox_vertices);
         trace!(
             "Applying transform to bbox.  transform {:?}: before: {:?}, after: {:?}",
-            transform,
-            self,
-            result
+            transform, self, result
         );
         result
     }

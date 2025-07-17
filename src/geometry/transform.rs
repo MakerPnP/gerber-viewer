@@ -538,17 +538,25 @@ mod transform_tests {
         );
 
         // Print the combined transforms for debugging
-        println!("Combined transform for Box1: rotation={:.2} degrees, offset=({:.2}, {:.2}), origin=({:.2}, {:.2}), scale={:.2}",
-                 combined1.rotation * 180.0 / PI as f32,
-                 combined1.offset.x, combined1.offset.y,
-                 combined1.origin.x, combined1.origin.y,
-                 combined1.scale);
+        println!(
+            "Combined transform for Box1: rotation={:.2} degrees, offset=({:.2}, {:.2}), origin=({:.2}, {:.2}), scale={:.2}",
+            combined1.rotation * 180.0 / PI as f32,
+            combined1.offset.x,
+            combined1.offset.y,
+            combined1.origin.x,
+            combined1.origin.y,
+            combined1.scale
+        );
 
-        println!("Combined transform for Box2: rotation={:.2} degrees, offset=({:.2}, {:.2}), origin=({:.2}, {:.2}), scale={:.2}",
-                 combined2.rotation * 180.0 / PI as f32,
-                 combined2.offset.x, combined2.offset.y,
-                 combined2.origin.x, combined2.origin.y,
-                 combined2.scale);
+        println!(
+            "Combined transform for Box2: rotation={:.2} degrees, offset=({:.2}, {:.2}), origin=({:.2}, {:.2}), scale={:.2}",
+            combined2.rotation * 180.0 / PI as f32,
+            combined2.offset.x,
+            combined2.offset.y,
+            combined2.origin.x,
+            combined2.origin.y,
+            combined2.scale
+        );
 
         // Verify that the boxes end up at the expected positions
         assert!((box1_final_reference.x - 5.0).abs() < 1e-6);
@@ -1039,11 +1047,7 @@ impl Matrix3TransformExt for Matrix3<f64> {
             let d = self[(1, 1)];
 
             // Same sign indicates 0°, opposite sign indicates 180°
-            if a * d > 0.0 {
-                Some(0)
-            } else {
-                Some(180)
-            }
+            if a * d > 0.0 { Some(0) } else { Some(180) }
         } else if self.is_90_or_270_rotation() {
             // Determine if it's 90° or 270° by checking the sign of off-diagonal elements
             let b = self[(0, 1)];
@@ -1052,11 +1056,7 @@ impl Matrix3TransformExt for Matrix3<f64> {
             // For standard rotation matrices:
             // 90° rotation has b < 0 and c > 0
             // 270° rotation has b > 0 and c < 0
-            if b < 0.0 && c > 0.0 {
-                Some(90)
-            } else {
-                Some(270)
-            }
+            if b < 0.0 && c > 0.0 { Some(90) } else { Some(270) }
         } else {
             None
         }
