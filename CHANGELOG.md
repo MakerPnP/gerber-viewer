@@ -14,10 +14,12 @@ Possible log types:
 ### (unreleased)
 
 - [changed] Add support for unclosed regions, as found in some EasyEDA generated files. SPEC-ISSUE: closed-vs-unclosed-regions
+- [changed] Using rust 2024 edition.
 
 ### v0.4.0 (2025-07-14)
 
 - [changed] Support egui 0.32.0
+- [changed] Minimum rust version is now 1.85.0.
 
 ### v0.3.0 (2025-07-11)
 
