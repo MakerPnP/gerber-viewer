@@ -9,7 +9,10 @@ use nalgebra::{Matrix3, Vector2};
 
 use crate::geometry::{GerberTransform, Matrix3Pos2Ext, Matrix3TransformExt};
 use crate::layer::GerberPrimitive;
-use crate::{ArcGerberPrimitive, CircleGerberPrimitive, LineGerberPrimitive, Matrix3ScalingExt, PolygonGerberPrimitive, RectangleGerberPrimitive};
+use crate::{
+    ArcGerberPrimitive, CircleGerberPrimitive, LineGerberPrimitive, Matrix3ScalingExt, PolygonGerberPrimitive,
+    RectangleGerberPrimitive,
+};
 use crate::{GerberLayer, ViewState, color};
 
 #[derive(Debug, Clone)]
@@ -66,21 +69,51 @@ impl GerberRenderer {
             };
 
             match primitive {
-                GerberPrimitive::Circle(circle) => {
-                    circle.render(painter, &view, &transform_matrix, &transform_scaling, color, shape_number, configuration)
-                }
-                GerberPrimitive::Rectangle(rect) => {
-                    rect.render(painter, &view, &transform_matrix, &transform_scaling, color, shape_number, configuration)
-                }
-                GerberPrimitive::Line(line) => {
-                    line.render(painter, &view, &transform_matrix, &transform_scaling, color, shape_number, configuration)
-                }
-                GerberPrimitive::Arc(arc) => {
-                    arc.render(painter, &view, &transform_matrix, &transform_scaling, color, shape_number, configuration)
-                }
-                GerberPrimitive::Polygon(polygon) => {
-                    polygon.render(painter, &view, &transform_matrix, &transform_scaling, color, shape_number, configuration)
-                }
+                GerberPrimitive::Circle(circle) => circle.render(
+                    painter,
+                    &view,
+                    &transform_matrix,
+                    &transform_scaling,
+                    color,
+                    shape_number,
+                    configuration,
+                ),
+                GerberPrimitive::Rectangle(rect) => rect.render(
+                    painter,
+                    &view,
+                    &transform_matrix,
+                    &transform_scaling,
+                    color,
+                    shape_number,
+                    configuration,
+                ),
+                GerberPrimitive::Line(line) => line.render(
+                    painter,
+                    &view,
+                    &transform_matrix,
+                    &transform_scaling,
+                    color,
+                    shape_number,
+                    configuration,
+                ),
+                GerberPrimitive::Arc(arc) => arc.render(
+                    painter,
+                    &view,
+                    &transform_matrix,
+                    &transform_scaling,
+                    color,
+                    shape_number,
+                    configuration,
+                ),
+                GerberPrimitive::Polygon(polygon) => polygon.render(
+                    painter,
+                    &view,
+                    &transform_matrix,
+                    &transform_scaling,
+                    color,
+                    shape_number,
+                    configuration,
+                ),
             }
         }
     }
@@ -179,7 +212,7 @@ impl Renderable for RectangleGerberPrimitive {
             if should_swap {
                 std::mem::swap(&mut width, &mut height);
             }
-            
+
             width *= transform_scaling.x as f32;
             height *= transform_scaling.y as f32;
 

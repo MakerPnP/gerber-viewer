@@ -274,7 +274,7 @@ pub trait Matrix3ScalingExt {
 
 impl Matrix3ScalingExt for Matrix3<f64> {
     fn get_scaling_factors(&self) -> Vector2<f64> {
-        // For a 2D transform matrix, scaling factors can be calculated from the 
+        // For a 2D transform matrix, scaling factors can be calculated from the
         // first two columns of the matrix
         let scale_x = (self[(0, 0)].powi(2) + self[(1, 0)].powi(2)).sqrt();
         let scale_y = (self[(0, 1)].powi(2) + self[(1, 1)].powi(2)).sqrt();
