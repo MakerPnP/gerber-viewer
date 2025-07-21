@@ -11,6 +11,11 @@ Possible log types:
 - `[fixed]` for any bug fixes.
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
+### v0.4.3 (2025-07-21)
+
+- [fixed] Fix missing scale from circles.
+- [fixed] Fix incorrect scaling on axis-aligned rectangles when an offset was used. 
+
 ### v0.4.2 (2025-07-21)
 
 - [fixed] Fix not applying transform to axis-aligned rectangles. 
