@@ -174,7 +174,8 @@ impl Renderable for RectangleGerberPrimitive {
                 std::mem::swap(&mut width, &mut height);
             }
 
-            let size = Vec2::new(width, height) * view.scale;
+            let size = transform_matrix.transform_pos2(Pos2::new(width, height) * view.scale);
+
             let top_left = center - size / 2.0; // Calculate top-left from center
 
             painter.rect(

@@ -11,6 +11,10 @@ Possible log types:
 - `[fixed]` for any bug fixes.
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
+### v0.4.2 (2025-07-21)
+
+- [fixed] Fix not applying transform to axis-aligned rectangles. 
+
 ### v0.4.1 (2025-07-17)
 
 - [changed] Add support for unclosed regions, as found in some EasyEDA generated files. SPEC-ISSUE: closed-vs-unclosed-regions
