@@ -28,6 +28,12 @@ const CENTER_OFFSET: Vector2<f64> = Vector2::new(15.0, 20.0);
 const DESIGN_OFFSET: Vector2<f64> = Vector2::new(-5.0, -10.0);
 //const DESIGN_OFFSET: Vector2<f64> = Vector2::new(-10.0, -10.0);
 
+// we use a scale greater than 1.0 to ensure that scaling is applied correctly.
+// this has no effect on the view in this demo app, since the view is scaled to the gerber content.
+// scaling is more important when rendering multiple layers where each layer needs a different scaling.
+// this can be useful if one gerber layer is in MM and the other is in inches.
+const DEFAULT_SCALE: f64 = 2.0;
+
 // radius of the markers, in gerber coordinates
 const MARKER_RADIUS: f32 = 2.5;
 
@@ -90,6 +96,7 @@ impl DemoApp {
             mirroring: MIRRORING.into(),
             origin,
             offset: DESIGN_OFFSET,
+            scale: DEFAULT_SCALE,
             ..GerberTransform::default()
         };
 
