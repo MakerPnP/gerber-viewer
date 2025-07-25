@@ -8,7 +8,7 @@ use crate::{Invert, ToPos2};
 
 #[derive(Debug, Default)]
 pub struct UiState {
-    // these values are invalid until 'update' has been called
+    // these two values are invalid until 'update' has been called
     pub center_screen_pos: Pos2,
     pub origin_screen_pos: Pos2,
 
@@ -18,6 +18,8 @@ pub struct UiState {
 
 impl UiState {
     pub fn update(&mut self, ui: &Ui, viewport: &Rect, response: &Response, view_state: &mut ViewState) {
+        view_state.handle_viewport_relocation(viewport);
+
         self.update_cursor_position(view_state, &response, ui);
         self.handle_panning(view_state, &response, ui);
         self.handle_zooming(view_state, &response, ui);
@@ -83,6 +85,9 @@ pub struct ViewState {
     pub translation: Vec2,
     pub scale: f32,
     pub base_scale: f32, // Scale that represents 100% zoom
+
+    // used to track viewport relocation so that the translation can be updated
+    pub previous_viewport_pos: Option<Pos2>,
 }
 
 impl Default for ViewState {
@@ -91,6 +96,7 @@ impl Default for ViewState {
             translation: Vec2::ZERO,
             scale: 1.0,
             base_scale: 1.0,
+            previous_viewport_pos: None,
         }
     }
 }
@@ -139,6 +145,23 @@ impl ViewState {
             viewport.center().x - (center.x as f32 * self.scale),
             viewport.center().y + (center.y as f32 * self.scale),
         );
+
+        // enssure the viewport is not relocated this frame
+        self.previous_viewport_pos = None;
+    }
+
+    pub fn handle_viewport_relocation(&mut self, viewport: &Rect) {
+        let viewport_pos = viewport.min; // Top-left corner
+
+        if let Some(previous_viewport_pos) = self.previous_viewport_pos {
+            let delta = viewport_pos - previous_viewport_pos;
+            if delta != egui::Vec2::ZERO {
+                // The viewport moved, update translation to compensate.
+                self.translation += delta;
+            }
+        }
+
+        self.previous_viewport_pos = Some(viewport_pos);
     }
 
     pub fn zoom_level_percent(&self, units: Unit, display_info: &DisplayInfo) -> f32 {
