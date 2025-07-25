@@ -3,7 +3,7 @@ use std::io::BufReader;
 use std::time::Instant;
 use eframe::emath::Rect;
 use eframe::epaint::Color32;
-use egui::ViewportBuilder;
+use egui::{Frame, ViewportBuilder};
 use nalgebra::{Point2, Vector2, Vector3};
 use gerber_viewer::gerber_parser::parse;
 use gerber_viewer::{draw_arrow, draw_crosshair, draw_marker, draw_outline, GerberLayer, GerberRenderer, RenderConfiguration, ToPosition, UiState, ViewState};
@@ -69,7 +69,7 @@ impl Settings {
             // scaling is more important when rendering multiple layers where each layer needs a different scaling.
             // this can be useful if one gerber layer is in MM and the other is in inches.
             default_scale: 2.0,
-            
+
             ..Default::default()
         }
     }
@@ -106,13 +106,13 @@ impl GerberViewerInstance {
         //
         let reader = BufReader::new(demo.source);
         let doc = parse(reader).unwrap();
-        
+
         //
         // build a layer
         //
         let commands = doc.into_commands();
         let gerber_layer = GerberLayer::new(commands);
-        
+
         //
         // setup a renderer
         //
@@ -169,6 +169,7 @@ impl GerberViewerInstance {
             });
 
         egui::CentralPanel::default()
+            .frame(Frame::new())
             .show_inside(ui, |ui|{
                 //
                 // Animate the gerber view by rotating it.
@@ -293,7 +294,7 @@ struct Demo {
     kind: DemoKind,
     name: &'static str,
     source: &'static [u8],
-    initial_settings: Settings, 
+    initial_settings: Settings,
 }
 
 struct DemoApp {
@@ -397,10 +398,11 @@ impl eframe::App for DemoApp {
 
         let central_panel_rect = central_panel_rect.unwrap();
         for (kind, instance) in self.instances.iter_mut() {
-            
+
             let title = self.demos.iter().find(|candidate| candidate.kind == *kind).unwrap().name;
-            
+
             egui::Window::new(title)
+                .default_size([640.0, 480.0])
                 .resizable(true)
                 .constrain_to(central_panel_rect)
                 .show(ctx, |ui|{
