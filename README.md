@@ -6,25 +6,14 @@
 
 - [Docs (released)](https://docs.rs/gerber-viewer/)
 
+## Overview
+
 A cargo crate for rendering Gerber files.
 
-Uses `gerber-types` for specification of the gerber commands.
+The demo application also includes 'gerber playground' functionality by allows you to edit the gerber source and view
+the changes!
 
-Gerber types can be programatically defined, or gerber files can be imported with the `gerber-parser`
-
-This crate is used as core component of the [MakerPnP](https://github.com/MakerPnP/makerpnp) project, here's a screenshot from the MakerPnP gerber viewer:
-
-[<img src="assets/makerpnp_gerber_viewer/screenshots/gerber_viewer_2025-05-01_221636.png" width="800" alt="GerberViewer">](assets/makerpnp_gerber_viewer/screenshots/gerber_viewer_2025-05-01_221636.png)
-
-
-## Cargo Features
-
-* `egui` Adds rendering support using egui.
-* `parser` Adds the gerber parser as a re-export. This is helpful so you can depend just on this crate and ensures there
-  are no version mismatches between the gerber types, gerber parser and gerber rendering.
-* `types` Adds the gerber types as a re-export.  See above.
-
-For the default features, see the [`Cargo.toml`](Cargo.toml)
+[<img src="assets/demo/screenshots/screenshot_2025-07-25_183557.png" width="800" alt="Demo">](assets/demo/screenshots/screenshot_2025-07-25_183557.png)
 
 ## Demo
 
@@ -40,7 +29,7 @@ See `demo/src/main.rs` and `demo/Cargo.toml` for details.
 
 Screenshot:
 
-[<img src="assets/makerpnp_gerber_viewer/screenshots/screenshot_2025-07-25_161707.png" width="800" alt="GerberViewer">](assets/makerpnp_gerber_viewer/screenshots/screenshot_2025-07-25_161707.png)
+[<img src="assets/makerpnp_gerber_viewer/screenshots/screenshot_2025-07-25_161707.png" width="800" alt="GerberViewer">](assets/demo/screenshots/screenshot_2025-07-25_161707.png)
 
 Red box = Axis aligned bounding box.
 Green box = layer bounding box.
@@ -52,12 +41,14 @@ Single gerber layer rendered with individual shape coloring debug mode enabled.
 
 Video (from a slightly older version):
 
-![recording_2025-07-25_162724.gif](assets/makerpnp_gerber_viewer/screenshots/recording_2025-07-25_162724.gif)
+![recording_2025-07-25_162724.gif](assets/demo/screenshots/recording_2025-07-25_162724.gif)
 
 
 ## Rendering
 
 Currently only egui is supported, but the code could be adapted for other rendering methods, PR's welcome.
+
+Multi-layer rendering is supported, just create multiple `GerberRenderer` instances and call `paint_layer` for each one. 
 
 ## Status
 
@@ -67,7 +58,7 @@ is currently the driving force for upcoming changes.
 Current features are likely sufficient for viewing most modern PCB gerber files, the macro support is a key feature.
 
 The list of supported features will be improved as developer time permits, if you'd like to contribute, please see the
-![contributing](#contributing) section below.
+[contributing](#Contributing) section below.
 
 ### Supported gerber features
 
@@ -122,6 +113,25 @@ The list of supported features will be improved as developer time permits, if yo
 ### Other rendering limitations
 
 * All arcs are limited to 32 points for now.  This is fine for small arcs, but noticable on larger ones.
+
+## Cargo Features
+
+* `egui` Adds rendering support using egui.
+* `parser` Adds the gerber parser as a re-export. This is helpful so you can depend just on this crate and ensures there
+  are no version mismatches between the gerber types, gerber parser and gerber rendering.
+* `types` Adds the gerber types as a re-export.  See above.
+
+For the default features, see the [`Cargo.toml`](Cargo.toml)
+
+## Background
+
+Uses `gerber-types` for specification of the gerber commands.
+
+Gerber types can be programatically defined, or gerber files can be imported with the `gerber-parser`
+
+This crate is used as core component of the [MakerPnP](https://github.com/MakerPnP/makerpnp) project, here's a screenshot from the MakerPnP gerber viewer showing multi-layer rendering:
+
+[<img src="assets/makerpnp_gerber_viewer/screenshots/gerber_viewer_2025-05-01_221636.png" width="800" alt="GerberViewer">](assets/makerpnp_gerber_viewer/screenshots/gerber_viewer_2025-05-01_221636.png)
 
 ## Feedback
 

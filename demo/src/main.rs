@@ -101,18 +101,8 @@ impl GerberViewerInstance {
         // take a copy of the settings, so that we can modify them without affecting the original.
         let settings = demo.initial_settings.clone();
 
-        //
-        // parse the gerber file
-        //
-        let reader = BufReader::new(demo.source);
-        let doc = parse(reader).unwrap();
-
-        //
-        // build a layer
-        //
-        let commands = doc.into_commands();
-        let gerber_layer = GerberLayer::new(commands);
-
+        let gerber_layer = Self::build_layer(&demo.source);
+        
         //
         // setup a renderer
         //
@@ -145,6 +135,26 @@ impl GerberViewerInstance {
             needs_view_fitting: true,
             transform,
         }
+    }
+    
+    fn build_layer(source: &str) -> GerberLayer {
+        //
+        // parse the gerber file
+        //
+        let reader = BufReader::new(source.as_bytes());
+        let doc = parse(reader).unwrap();
+
+        //
+        // build a layer
+        //
+        let commands = doc.into_commands();
+        GerberLayer::new(commands)
+    }
+
+    fn reparse(&mut self, source: &str) {
+        let gerber_layer = Self::build_layer(source);
+        self.gerber_layer = gerber_layer;
+        self.needs_view_fitting = true;
     }
 
     fn fit_view(&mut self, viewport: Rect) {
@@ -288,13 +298,32 @@ enum DemoKind {
     StepRepeat,
     #[allow(dead_code)]
     LocalFile,
+    Playground,
 }
 
 struct Demo {
     kind: DemoKind,
     name: &'static str,
-    source: &'static [u8],
+    source: String,
     initial_settings: Settings,
+    
+    reparse_requested: bool,
+}
+
+impl Demo {
+    pub fn new(kind: DemoKind, name: &'static str, initial_source: &'static str, initial_settings: Settings) -> Self {
+        Self {
+            kind,
+            name,
+            source: initial_source.to_string(),
+            initial_settings,
+            reparse_requested: false,
+        }
+    }
+    
+    pub fn request_reparse(&mut self) {
+        self.reparse_requested = true;
+    }
 }
 
 struct DemoApp {
@@ -302,32 +331,34 @@ struct DemoApp {
     instances: HashMap<DemoKind, GerberViewerInstance>,
 
     last_frame_time: Instant,
+    focussed_demo_kind: Option<DemoKind>,
 }
 
 impl DemoApp {
 
     pub fn new() -> Self {
         let demos = vec![
-            Demo { kind: DemoKind::Primary, name: "Primary demo", source: include_str!("../assets/demo.gbr").as_bytes(), initial_settings: Settings::primary_demo_settings() },
-            Demo { kind: DemoKind::ApertureBlockSimple, name: "Aperture Block - Simple", source: include_str!("../assets/aperture-block-simple.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::ApertureBlockNested, name: "Aperture Block - Nested", source: include_str!("../assets/aperture-block-nested.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::ApertureBlockReference, name: "Aperture Block - Reference", source: include_str!("../assets/aperture-block-reference.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::VectorFont, name: "Vector Font", source: include_str!("../assets/vector-font.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::Rectangles, name: "Rectangles", source: include_str!("../assets/rectangles.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::RegionNonOverlappingContours, name: "Region - Non-overlapping Contours", source: include_str!("../assets/region-non-overlapping-contours.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::Arcs, name: "Arcs", source: include_str!("../assets/arcs.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::MacroCenterLine, name: "Macro - Center-line", source: include_str!("../assets/macro-centerline.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::MacroVectorLine, name: "Macro - Vector-line", source: include_str!("../assets/macro-vectorline.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::MacroRoundedRectangle, name: "Macro - Rounded Rectangle", source: include_str!("../assets/macro-rounded-rectangle.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::MacroPolygons, name: "Macro - Polygons", source: include_str!("../assets/macro-polygons.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::MacroPolygonsConcave, name: "Macro - Polygons (Concave)", source: include_str!("../assets/macro-polygons-concave.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::StepRepeat, name: "Step Repeat", source: include_str!("../assets/step-repeat.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::MirroringRotationScaling, name: "Mirroring rotation and scaling", source: include_str!("../assets/mirroring-rotation-scaling.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::DiptraceOutlineTest1, name: "Diptrace - Outline Test 1", source: include_str!("../assets/diptrace-outline-test-1/BoardOutline.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::DiptraceFontTest1, name: "Diptrace - Font Test 1", source: include_str!("../assets/diptrace-font-test-1/TopAssembly.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::DiptraceRegionTest1, name: "Diptrace - Region Test 1", source: include_str!("../assets/diptrace-region-test-1.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::EasyEdaUnclosedRegionTest1, name: "EasyEDA - Unclosed Region Test 1", source: include_str!("../assets/easyeda-unclosed-region-test-1.gbr").as_bytes(), initial_settings: Default::default() },
-            Demo { kind: DemoKind::LocalFile, name: "LocalFile", source: include_str!(r#"D:\Users\Hydra\Documents\DipTrace\Projects\SPRacingRXN1\Export\SPRacingRXN1-RevB-20240507-1510_gerberx2\TopSilk.gbr"#).as_bytes(), initial_settings: Settings::local_file_settings() },
+            Demo::new(DemoKind::Primary, "Primary demo", include_str!("../assets/demo.gbr"), Settings::primary_demo_settings()),
+            Demo::new(DemoKind::Playground, "Playground", include_str!("../assets/playground.gbr"), Default::default()),
+            Demo::new(DemoKind::ApertureBlockSimple, "Aperture Block - Simple", include_str!("../assets/aperture-block-simple.gbr"), Default::default()),
+            Demo::new(DemoKind::ApertureBlockNested, "Aperture Block - Nested", include_str!("../assets/aperture-block-nested.gbr"), Default::default()),
+            Demo::new(DemoKind::ApertureBlockReference, "Aperture Block - Reference", include_str!("../assets/aperture-block-reference.gbr"), Default::default()),
+            Demo::new(DemoKind::VectorFont, "Vector Font", include_str!("../assets/vector-font.gbr"), Default::default()),
+            Demo::new(DemoKind::Rectangles, "Rectangles", include_str!("../assets/rectangles.gbr"), Default::default()),
+            Demo::new(DemoKind::RegionNonOverlappingContours, "Region - Non-overlapping Contours", include_str!("../assets/region-non-overlapping-contours.gbr"), Default::default()),
+            Demo::new(DemoKind::Arcs, "Arcs", include_str!("../assets/arcs.gbr"), Default::default()),
+            Demo::new(DemoKind::MacroCenterLine, "Macro - Center-line", include_str!("../assets/macro-centerline.gbr"), Default::default()),
+            Demo::new(DemoKind::MacroVectorLine, "Macro - Vector-line", include_str!("../assets/macro-vectorline.gbr"), Default::default()),
+            Demo::new(DemoKind::MacroRoundedRectangle, "Macro - Rounded Rectangle", include_str!("../assets/macro-rounded-rectangle.gbr"), Default::default()),
+            Demo::new(DemoKind::MacroPolygons, "Macro - Polygons", include_str!("../assets/macro-polygons.gbr"), Default::default()),
+            Demo::new(DemoKind::MacroPolygonsConcave, "Macro - Polygons (Concave)", include_str!("../assets/macro-polygons-concave.gbr"), Default::default()),
+            Demo::new(DemoKind::StepRepeat, "Step Repeat", include_str!("../assets/step-repeat.gbr"), Default::default()),
+            Demo::new(DemoKind::MirroringRotationScaling, "Mirroring rotation and scaling", include_str!("../assets/mirroring-rotation-scaling.gbr"), Default::default()),
+            Demo::new(DemoKind::DiptraceOutlineTest1, "Diptrace - Outline Test 1", include_str!("../assets/diptrace-outline-test-1/BoardOutline.gbr"), Default::default()),
+            Demo::new(DemoKind::DiptraceFontTest1, "Diptrace - Font Test 1", include_str!("../assets/diptrace-font-test-1/TopAssembly.gbr"), Default::default()),
+            Demo::new(DemoKind::DiptraceRegionTest1, "Diptrace - Region Test 1", include_str!("../assets/diptrace-region-test-1.gbr"), Default::default()),
+            Demo::new(DemoKind::EasyEdaUnclosedRegionTest1, "EasyEDA - Unclosed Region Test 1", include_str!("../assets/easyeda-unclosed-region-test-1.gbr"), Default::default()),
+            Demo::new(DemoKind::LocalFile, "LocalFile", include_str!(r#"D:\Users\Hydra\Documents\DipTrace\Projects\SPRacingRXN1\Export\SPRacingRXN1-RevB-20240507-1510_gerberx2\TopSilk.gbr"#), Settings::local_file_settings()),
         ];
         let mut instances = HashMap::new();
 
@@ -341,6 +372,7 @@ impl DemoApp {
             demos,
             instances,
             last_frame_time: Instant::now(),
+            focussed_demo_kind: None,
         }
     }
 }
@@ -351,7 +383,7 @@ impl eframe::App for DemoApp {
         let now = Instant::now();
         let frame_delta = now.duration_since(self.last_frame_time).as_secs_f32();
         self.last_frame_time = now;
-
+        
         //
         // Build a UI
         //
@@ -389,6 +421,43 @@ impl eframe::App for DemoApp {
                 ui.label("Pan gerbers by using left-mouse button + drag, zoom using scroll wheel.");
             });
 
+        if let Some(kind) = self.focussed_demo_kind {
+
+            let demo = self.demos.iter_mut().find(|candidate|candidate.kind == kind).unwrap();
+
+            egui::SidePanel::right("right_panel")
+                .default_width(320.0)
+                .min_width(200.0)
+                .resizable(true)
+                .show(ctx, |ui| {
+                    egui::Sides::new()
+                        .show(ui,|ui|{
+                            ui.heading(demo.name.to_string());
+                        }, |ui| {
+                            let button = ui.button("Apply changes");
+                            if button.hovered() {
+                                button.show_tooltip_text("If there is a panic, please submit a bug report to the 'gerber-parser' repository.");
+                            }
+
+                            if button.clicked() {
+                                demo.request_reparse();
+                            }
+                        });
+                    
+                    ui.separator();
+
+                    egui::ScrollArea::both()
+                        .max_width(ui.available_size_before_wrap().x)
+                        .auto_shrink(false)
+                        .show(ui, |ui| {
+                            ui.add(
+                                egui::TextEdit::multiline(&mut demo.source)
+                                    .desired_width(ui.available_size_before_wrap().x)
+                            )
+                        });
+                });
+        }
+
         let mut central_panel_rect = None;
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.centered_and_justified(|ui| {
@@ -397,17 +466,66 @@ impl eframe::App for DemoApp {
         });
 
         let central_panel_rect = central_panel_rect.unwrap();
+        let mut close_list = vec![];
         for (kind, instance) in self.instances.iter_mut() {
 
             let title = self.demos.iter().find(|candidate| candidate.kind == *kind).unwrap().name;
 
+            let mut open = true;
             egui::Window::new(title)
-                .default_size([640.0, 480.0])
+                .default_size([400.0, 400.0])
+                .open(&mut open)
                 .resizable(true)
                 .constrain_to(central_panel_rect)
                 .show(ctx, |ui|{
+
+                    let on_top = Some(ui.layer_id()) == ui.ctx().top_layer_id();
+
+                    if on_top {
+                        let changed = match self.focussed_demo_kind {
+                            Some(focussed_demo_kind) => focussed_demo_kind != *kind,
+                            None => true,
+                        };
+
+                        if changed {
+                            self.focussed_demo_kind = Some(*kind);
+                        }
+                    }
+
                     instance.ui(ui, frame_delta);
                 });
+            
+            if !open {
+                close_list.push(*kind);
+            }
+        }
+        
+        // handle the windows that have been closed this frame
+        for kind in close_list.into_iter() {
+            self.instances.remove(&kind);
+        }
+
+        // handle no windows open
+        if self.instances.is_empty() {
+            self.focussed_demo_kind = None
+        }
+
+        // handle the window having been closed by the demo list or by it's close button
+        if let Some(kind) = &self.focussed_demo_kind {
+            if !self.instances.contains_key(kind) {
+                self.focussed_demo_kind = None;
+            }
+        }
+        
+        // handle any reparse requests
+        for demo in &mut self.demos {
+            if demo.reparse_requested {
+                demo.reparse_requested = false;
+                if let Some(instance) = self.instances.get_mut(&demo.kind) {
+                    instance.reparse(&demo.source);
+                    ctx.request_repaint();
+                }
+            }
         }
     }
 }
