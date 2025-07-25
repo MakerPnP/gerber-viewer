@@ -28,7 +28,7 @@ For the default features, see the [`Cargo.toml`](Cargo.toml)
 
 ## Demo
 
-There is a minimal stand-alone demo app which renders the `demo/assets/demo.gbr` file.
+There is a minimal stand-alone demo app which renders the files in the `demo/assets` folder.
 
 Run it:
 ```
@@ -40,7 +40,7 @@ See `demo/src/main.rs` and `demo/Cargo.toml` for details.
 
 Screenshot:
 
-![screenshot_2025-06-09_213837.png](assets/makerpnp_gerber_viewer/screenshots/screenshot_2025-06-09_213837.png)
+[<img src="assets/makerpnp_gerber_viewer/screenshots/screenshot_2025-07-25_161707.png" width="800" alt="GerberViewer">](assets/makerpnp_gerber_viewer/screenshots/screenshot_2025-07-25_161707.png)
 
 Red box = Axis aligned bounding box.
 Green box = layer bounding box.
@@ -51,7 +51,8 @@ Purple point = Design origin.
 Single gerber layer rendered with individual shape coloring debug mode enabled.
 
 Video (from a slightly older version):
-![recording_2025-05-27_145242.gif](assets/makerpnp_gerber_viewer/screenshots/recording_2025-05-27_145242.gif)
+
+![recording_2025-07-25_162724.gif](assets/makerpnp_gerber_viewer/screenshots/recording_2025-07-25_162724.gif)
 
 
 ## Rendering
