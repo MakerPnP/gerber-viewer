@@ -10,6 +10,7 @@ use gerber_viewer::{draw_arrow, draw_crosshair, draw_marker, draw_outline, Gerbe
 use gerber_viewer::BoundingBox;
 use gerber_viewer::GerberTransform;
 
+#[derive(Clone, Copy, Debug)]
 struct Settings {
     enable_unique_shape_colors: bool,
     enable_vertex_numbering: bool,
@@ -19,20 +20,17 @@ struct Settings {
     initial_rotation: f32,
     mirroring: [bool; 2],
 
-    // for mirroring and rotation
+    /// for mirroring and rotation
     center_offset: Vector2<f64>,
 
-    // in EDA tools like DipTrace, a gerber offset can be specified when exporting gerbers, e.g. 10,5.
-    // use negative offsets here to relocate the gerber back to 0,0, e.g. -10, -5
+    /// in EDA tools like DipTrace, a gerber offset can be specified when exporting gerbers, e.g. 10,5.
+    /// use negative offsets here to relocate the gerber back to 0,0, e.g. -10, -5
     design_offset: Vector2<f64>,
 
-    // we use a scale greater than 1.0 to ensure that scaling is applied correctly.
-    // this has no effect on the view in this demo app, since the view is scaled to the gerber content.
-    // scaling is more important when rendering multiple layers where each layer needs a different scaling.
-    // this can be useful if one gerber layer is in MM and the other is in inches.
+    /// scaling is more important when rendering multiple layers where each layer needs a different scaling.
     default_scale: f64,
 
-    // radius of the markers, in gerber coordinates
+    /// radius of the markers, in gerber coordinates
     marker_radius: f32,
 }
 
@@ -42,31 +40,47 @@ impl Default for Settings {
             enable_unique_shape_colors: true,
             enable_vertex_numbering: false,
             enable_shape_numbering: false,
+            zoom_factor: 1.0,
+            rotation_speed_deg_per_sec: 0.0,
+            initial_rotation: 0.0_f32.to_radians(),
+            mirroring: [false, false],
+            center_offset: Vector2::new(0.0, 0.0),
+            design_offset: Vector2::new(0.0, 0.0),
+            default_scale: 1.0,
+
+            // radius of the markers, in gerber coordinates (assuming Millimeters here)
+            marker_radius: 2.5,
+        }
+    }
+}
+
+impl Settings {
+    fn primary_demo_settings() -> Self {
+        Self {
+            enable_unique_shape_colors: true,
             zoom_factor: 0.50,
             rotation_speed_deg_per_sec: 45.0,
             initial_rotation: 45.0_f32.to_radians(),
-            mirroring: [false, false],
-
-            // for mirroring and rotation
-            //center_offset: Vector2<f64> = Vector2::new(0.0, 0.0),
             center_offset: Vector2::new(15.0, 20.0),
-            //center_offset: Vector2::new(14.75, 6.0),
-
-            // in EDA tools like DipTrace, a gerber offset can be specified when exporting gerbers, e.g. 10,5.
-            // use negative offsets here to relocate the gerber back to 0,0, e.g. -10, -5
-            //design_offset: Vector2::new(0.0, 0.0),
             design_offset: Vector2::new(-5.0, -10.0),
-            //design_offset: Vector2::new(-10.0, -10.0),
 
             // we use a scale greater than 1.0 to ensure that scaling is applied correctly.
             // this has no effect on the view in this demo app, since the view is scaled to the gerber content.
             // scaling is more important when rendering multiple layers where each layer needs a different scaling.
             // this can be useful if one gerber layer is in MM and the other is in inches.
             default_scale: 2.0,
+            
+            ..Default::default()
+        }
+    }
 
-            // radius of the markers, in gerber coordinates
-            marker_radius: 2.5,
+    #[allow(dead_code)]
+    fn local_file_settings() -> Self {
+        Self {
+            center_offset: Vector2::new(14.75, 6.0),
+            design_offset: Vector2::new(-10.0, -10.0),
 
+            ..Default::default()
         }
     }
 }
@@ -80,20 +94,28 @@ struct GerberViewerInstance {
     ui_state: UiState,
     needs_view_fitting: bool,
     transform: GerberTransform,
-    last_frame_time: std::time::Instant,
 }
 
 impl GerberViewerInstance {
     fn new(demo: &Demo) -> Self {
-        let settings = Settings::default();
+        // take a copy of the settings, so that we can modify them without affecting the original.
+        let settings = demo.initial_settings.clone();
 
+        //
+        // parse the gerber file
+        //
         let reader = BufReader::new(demo.source);
-
         let doc = parse(reader).unwrap();
+        
+        //
+        // build a layer
+        //
         let commands = doc.into_commands();
-
         let gerber_layer = GerberLayer::new(commands);
-
+        
+        //
+        // setup a renderer
+        //
         let renderer_config = RenderConfiguration {
             use_unique_shape_colors: settings.enable_unique_shape_colors,
             use_shape_numbering: settings.enable_shape_numbering,
@@ -122,10 +144,8 @@ impl GerberViewerInstance {
             ui_state: Default::default(),
             needs_view_fitting: true,
             transform,
-            last_frame_time: std::time::Instant::now(),
         }
     }
-
 
     fn fit_view(&mut self, viewport: Rect) {
         let layer_bbox = self.gerber_layer.bounding_box();
@@ -142,7 +162,7 @@ impl GerberViewerInstance {
         self.needs_view_fitting = false;
     }
 
-    fn ui(&mut self, ui: &mut egui::Ui, now: Instant) {
+    fn ui(&mut self, ui: &mut egui::Ui, frame_delta: f32) {
         egui::TopBottomPanel::bottom(ui.id().with("bottom_panel"))
             .show_inside(ui, |ui| {
                 ui.label(format!("Coordinates: {:?}", self.ui_state.cursor_gerber_coords));
@@ -153,10 +173,8 @@ impl GerberViewerInstance {
                 //
                 // Animate the gerber view by rotating it.
                 //
-                let delta = now.duration_since(self.last_frame_time).as_secs_f32();
-                self.last_frame_time = now;
 
-                let rotation_increment = self.settings.rotation_speed_deg_per_sec.to_radians() * delta;
+                let rotation_increment = self.settings.rotation_speed_deg_per_sec.to_radians() * frame_delta;
                 self.transform.rotation += rotation_increment;
 
                 if self.settings.rotation_speed_deg_per_sec > 0.0 {
@@ -267,6 +285,7 @@ enum DemoKind {
     MacroPolygons,
     MacroPolygonsConcave,
     StepRepeat,
+    #[allow(dead_code)]
     LocalFile,
 }
 
@@ -274,37 +293,40 @@ struct Demo {
     kind: DemoKind,
     name: &'static str,
     source: &'static [u8],
+    initial_settings: Settings, 
 }
 
 struct DemoApp {
     demos: Vec<Demo>,
     instances: HashMap<DemoKind, GerberViewerInstance>,
+
+    last_frame_time: Instant,
 }
 
 impl DemoApp {
 
     pub fn new() -> Self {
         let demos = vec![
-            Demo { kind: DemoKind::Primary, name: "Primary demo", source: include_str!("../assets/demo.gbr").as_bytes() },
-            Demo { kind: DemoKind::ApertureBlockSimple, name: "Aperture Block - Simple", source: include_str!("../assets/aperture-block-simple.gbr").as_bytes() },
-            Demo { kind: DemoKind::ApertureBlockNested, name: "Aperture Block - Nested", source: include_str!("../assets/aperture-block-nested.gbr").as_bytes() },
-            Demo { kind: DemoKind::ApertureBlockReference, name: "Aperture Block - Reference", source: include_str!("../assets/aperture-block-reference.gbr").as_bytes() },
-            Demo { kind: DemoKind::VectorFont, name: "Vector Font", source: include_str!("../assets/vector-font.gbr").as_bytes() },
-            Demo { kind: DemoKind::Rectangles, name: "Rectangles", source: include_str!("../assets/rectangles.gbr").as_bytes() },
-            Demo { kind: DemoKind::RegionNonOverlappingContours, name: "Region - Non-overlapping Contours", source: include_str!("../assets/region-non-overlapping-contours.gbr").as_bytes() },
-            Demo { kind: DemoKind::Arcs, name: "Arcs", source: include_str!("../assets/arcs.gbr").as_bytes() },
-            Demo { kind: DemoKind::MacroCenterLine, name: "Macro - Center-line", source: include_str!("../assets/macro-centerline.gbr").as_bytes() },
-            Demo { kind: DemoKind::MacroVectorLine, name: "Macro - Vector-line", source: include_str!("../assets/macro-vectorline.gbr").as_bytes() },
-            Demo { kind: DemoKind::MacroRoundedRectangle, name: "Macro - Rounded Rectangle", source: include_str!("../assets/macro-rounded-rectangle.gbr").as_bytes() },
-            Demo { kind: DemoKind::MacroPolygons, name: "Macro - Polygons", source: include_str!("../assets/macro-polygons.gbr").as_bytes() },
-            Demo { kind: DemoKind::MacroPolygonsConcave, name: "Macro - Polygons (Concave)", source: include_str!("../assets/macro-polygons-concave.gbr").as_bytes() },
-            Demo { kind: DemoKind::StepRepeat, name: "Step Repeat", source: include_str!("../assets/step-repeat.gbr").as_bytes() },
-            Demo { kind: DemoKind::MirroringRotationScaling, name: "Mirroring rotation and scaling", source: include_str!("../assets/mirroring-rotation-scaling.gbr").as_bytes() },
-            Demo { kind: DemoKind::DiptraceOutlineTest1, name: "Diptrace - Outline Test 1", source: include_str!("../assets/diptrace-outline-test-1/BoardOutline.gbr").as_bytes() },
-            Demo { kind: DemoKind::DiptraceFontTest1, name: "Diptrace - Font Test 1", source: include_str!("../assets/diptrace-font-test-1/TopAssembly.gbr").as_bytes() },
-            Demo { kind: DemoKind::DiptraceRegionTest1, name: "Diptrace - Region Test 1", source: include_str!("../assets/diptrace-region-test-1.gbr").as_bytes() },
-            Demo { kind: DemoKind::EasyEdaUnclosedRegionTest1, name: "EasyEDA - Unclosed Region Test 1", source: include_str!("../assets/easyeda-unclosed-region-test-1.gbr").as_bytes() },
-            //Demo { kind: DemoKind::LocalFile, name: "LocalFile", source: include_str!(r#"D:\Users\Hydra\Documents\DipTrace\Projects\SPRacingRXN1\Export\SPRacingRXN1-RevB-20240507-1510_gerberx2\TopSilk.gbr"#).as_bytes() },
+            Demo { kind: DemoKind::Primary, name: "Primary demo", source: include_str!("../assets/demo.gbr").as_bytes(), initial_settings: Settings::primary_demo_settings() },
+            Demo { kind: DemoKind::ApertureBlockSimple, name: "Aperture Block - Simple", source: include_str!("../assets/aperture-block-simple.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::ApertureBlockNested, name: "Aperture Block - Nested", source: include_str!("../assets/aperture-block-nested.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::ApertureBlockReference, name: "Aperture Block - Reference", source: include_str!("../assets/aperture-block-reference.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::VectorFont, name: "Vector Font", source: include_str!("../assets/vector-font.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::Rectangles, name: "Rectangles", source: include_str!("../assets/rectangles.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::RegionNonOverlappingContours, name: "Region - Non-overlapping Contours", source: include_str!("../assets/region-non-overlapping-contours.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::Arcs, name: "Arcs", source: include_str!("../assets/arcs.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::MacroCenterLine, name: "Macro - Center-line", source: include_str!("../assets/macro-centerline.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::MacroVectorLine, name: "Macro - Vector-line", source: include_str!("../assets/macro-vectorline.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::MacroRoundedRectangle, name: "Macro - Rounded Rectangle", source: include_str!("../assets/macro-rounded-rectangle.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::MacroPolygons, name: "Macro - Polygons", source: include_str!("../assets/macro-polygons.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::MacroPolygonsConcave, name: "Macro - Polygons (Concave)", source: include_str!("../assets/macro-polygons-concave.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::StepRepeat, name: "Step Repeat", source: include_str!("../assets/step-repeat.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::MirroringRotationScaling, name: "Mirroring rotation and scaling", source: include_str!("../assets/mirroring-rotation-scaling.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::DiptraceOutlineTest1, name: "Diptrace - Outline Test 1", source: include_str!("../assets/diptrace-outline-test-1/BoardOutline.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::DiptraceFontTest1, name: "Diptrace - Font Test 1", source: include_str!("../assets/diptrace-font-test-1/TopAssembly.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::DiptraceRegionTest1, name: "Diptrace - Region Test 1", source: include_str!("../assets/diptrace-region-test-1.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::EasyEdaUnclosedRegionTest1, name: "EasyEDA - Unclosed Region Test 1", source: include_str!("../assets/easyeda-unclosed-region-test-1.gbr").as_bytes(), initial_settings: Default::default() },
+            Demo { kind: DemoKind::LocalFile, name: "LocalFile", source: include_str!(r#"D:\Users\Hydra\Documents\DipTrace\Projects\SPRacingRXN1\Export\SPRacingRXN1-RevB-20240507-1510_gerberx2\TopSilk.gbr"#).as_bytes(), initial_settings: Settings::local_file_settings() },
         ];
         let mut instances = HashMap::new();
 
@@ -317,6 +339,7 @@ impl DemoApp {
         Self {
             demos,
             instances,
+            last_frame_time: Instant::now(),
         }
     }
 }
@@ -324,7 +347,9 @@ impl DemoApp {
 impl eframe::App for DemoApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
 
-        let now = std::time::Instant::now();
+        let now = Instant::now();
+        let frame_delta = now.duration_since(self.last_frame_time).as_secs_f32();
+        self.last_frame_time = now;
 
         //
         // Build a UI
@@ -379,7 +404,7 @@ impl eframe::App for DemoApp {
                 .resizable(true)
                 .constrain_to(central_panel_rect)
                 .show(ctx, |ui|{
-                    instance.ui(ui, now);
+                    instance.ui(ui, frame_delta);
                 });
         }
     }
