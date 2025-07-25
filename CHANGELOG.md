@@ -11,6 +11,12 @@ Possible log types:
 - `[fixed]` for any bug fixes.
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
+### v0.4.4 (unreleased)
+
+- [changed] Handle viewport relocation.
+- [changed] Demo app now shows one window for each file.
+- [added] Added feature that allows the user to edit the source for each demo and see the changes.
+
 ### v0.4.3 (2025-07-21)
 
 - [fixed] Fix missing scale from circles.
