@@ -1,6 +1,7 @@
 use log::trace;
 use nalgebra::{Matrix3, Point2, Vector2, Vector3};
 
+use crate::ToPos2;
 use crate::geometry::transform::GerberTransform;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -162,6 +163,16 @@ impl BoundingBox {
         Self {
             min,
             max,
+        }
+    }
+}
+
+#[cfg(feature = "egui")]
+impl From<BoundingBox> for egui::Rect {
+    fn from(value: BoundingBox) -> Self {
+        Self {
+            min: value.min.to_pos2(),
+            max: value.max.to_pos2(),
         }
     }
 }

@@ -114,7 +114,7 @@ impl GerberLayer {
     }
 }
 
-trait WithBoundingBox {
+pub trait WithBoundingBox {
     fn bounding_box(&self) -> BoundingBox;
 }
 

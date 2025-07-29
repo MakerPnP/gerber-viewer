@@ -12,9 +12,10 @@ use gerber_viewer::GerberTransform;
 
 #[derive(Clone, Copy, Debug)]
 struct Settings {
-    enable_unique_shape_colors: bool,
-    enable_vertex_numbering: bool,
-    enable_shape_numbering: bool,
+    use_unique_shape_colors: bool,
+    use_vertex_numbering: bool,
+    use_shape_numbering: bool,
+    use_shape_bboxes: bool,
     zoom_factor: f32,
     rotation_speed_deg_per_sec: f32,
     initial_rotation: f32,
@@ -37,9 +38,10 @@ struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            enable_unique_shape_colors: true,
-            enable_vertex_numbering: false,
-            enable_shape_numbering: false,
+            use_unique_shape_colors: true,
+            use_vertex_numbering: false,
+            use_shape_numbering: false,
+            use_shape_bboxes: false,
             zoom_factor: 1.0,
             rotation_speed_deg_per_sec: 0.0,
             initial_rotation: 0.0_f32.to_radians(),
@@ -57,7 +59,7 @@ impl Default for Settings {
 impl Settings {
     fn primary_demo_settings() -> Self {
         Self {
-            enable_unique_shape_colors: true,
+            use_unique_shape_colors: true,
             zoom_factor: 0.50,
             rotation_speed_deg_per_sec: 45.0,
             initial_rotation: 45.0_f32.to_radians(),
@@ -107,9 +109,10 @@ impl GerberViewerInstance {
         // setup a renderer
         //
         let renderer_config = RenderConfiguration {
-            use_unique_shape_colors: settings.enable_unique_shape_colors,
-            use_shape_numbering: settings.enable_shape_numbering,
-            use_vertex_numbering: settings.enable_vertex_numbering,
+            use_unique_shape_colors: settings.use_unique_shape_colors,
+            use_shape_numbering: settings.use_shape_numbering,
+            use_shape_bboxes: settings.use_shape_bboxes,
+            use_vertex_numbering: settings.use_vertex_numbering,
 
             // use the default for any remaining options, doing this makes adding options easier in the future.
             .. RenderConfiguration::default()

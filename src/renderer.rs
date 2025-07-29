@@ -11,9 +11,51 @@ use crate::geometry::{GerberTransform, Matrix3Pos2Ext, Matrix3TransformExt};
 use crate::layer::GerberPrimitive;
 use crate::{
     ArcGerberPrimitive, CircleGerberPrimitive, LineGerberPrimitive, Matrix3ScalingExt, PolygonGerberPrimitive,
-    RectangleGerberPrimitive,
+    RectangleGerberPrimitive, WithBoundingBox,
 };
 use crate::{GerberLayer, ViewState, color};
+
+macro_rules! draw_bbox {
+    ($primitive:ident, $configuration:ident, $painter:ident, $color:ident, $view:ident, $transform_matrix:ident) => {
+        #[cfg(feature = "egui")]
+        if $configuration.use_shape_bboxes {
+            let bbox_rect: Rect = $primitive.bounding_box().into();
+
+            let center = bbox_rect.center();
+            let screen_center = Pos2::new(center.x, -center.y);
+            let hw = bbox_rect.width() / 2.0;
+            let hh = bbox_rect.height() / 2.0;
+
+            // Define corners in local space (centered)
+            let corners = [
+                Pos2::new(-hw, -hh),
+                Pos2::new(hw, -hh),
+                Pos2::new(hw, hh),
+                Pos2::new(-hw, hh),
+            ];
+
+            let points: Vec<Pos2> = corners
+                .iter()
+                .map(|corner| {
+                    ($view.translation
+                        + $transform_matrix.transform_pos2(screen_center + (*corner).to_vec2()) * $view.scale)
+                        .to_pos2()
+                })
+                .collect();
+
+            $painter.add(Shape::Path(PathShape {
+                points,
+                closed: true,
+                fill: Color32::TRANSPARENT,
+                stroke: PathStroke {
+                    width: 1.0,
+                    color: ColorMode::Solid($color),
+                    kind: StrokeKind::Middle,
+                },
+            }));
+        }
+    };
+}
 
 #[derive(Debug, Clone)]
 pub struct RenderConfiguration {
@@ -23,6 +65,8 @@ pub struct RenderConfiguration {
     pub use_shape_numbering: bool,
     /// Draws the vertex number at the start of each line.
     pub use_vertex_numbering: bool,
+    /// Draws a bounding box for each shape,
+    pub use_shape_bboxes: bool,
 }
 
 impl Default for RenderConfiguration {
@@ -31,6 +75,7 @@ impl Default for RenderConfiguration {
             use_unique_shape_colors: false,
             use_shape_numbering: false,
             use_vertex_numbering: false,
+            use_shape_bboxes: false,
         }
     }
 }
@@ -177,7 +222,7 @@ impl Renderable for CircleGerberPrimitive {
         transform_scaling: &Vector2<f64>,
         color: Color32,
         shape_number: Option<usize>,
-        _configuration: &RenderConfiguration,
+        configuration: &RenderConfiguration,
     ) {
         let Self {
             center,
@@ -197,6 +242,7 @@ impl Renderable for CircleGerberPrimitive {
         #[cfg(feature = "egui")]
         painter.circle(center, radius, color, Stroke::NONE);
 
+        draw_bbox!(self, configuration, painter, color, view, transform_matrix);
         draw_shape_number(
             painter,
             view,
@@ -217,7 +263,7 @@ impl Renderable for RectangleGerberPrimitive {
         transform_scaling: &Vector2<f64>,
         color: Color32,
         shape_number: Option<usize>,
-        _configuration: &RenderConfiguration,
+        configuration: &RenderConfiguration,
     ) {
         let Self {
             origin,
@@ -287,6 +333,7 @@ impl Renderable for RectangleGerberPrimitive {
             painter.add(Shape::convex_polygon(screen_corners, color, Stroke::NONE));
         }
 
+        draw_bbox!(self, configuration, painter, color, view, transform_matrix);
         draw_shape_number(
             painter,
             view,
@@ -307,7 +354,7 @@ impl Renderable for LineGerberPrimitive {
         _transform_scaling: &Vector2<f64>,
         color: Color32,
         shape_number: Option<usize>,
-        _configuration: &RenderConfiguration,
+        configuration: &RenderConfiguration,
     ) {
         let Self {
             start,
@@ -334,6 +381,8 @@ impl Renderable for LineGerberPrimitive {
         painter.circle(transformed_start_position, radius, color, Stroke::NONE);
         painter.circle(transformed_end_position, radius, color, Stroke::NONE);
 
+        draw_bbox!(self, configuration, painter, color, view, transform_matrix);
+
         if shape_number.is_some() {
             let screen_center = (transformed_start_position + transformed_end_position.to_vec2()) / 2.0;
             draw_shape_number(
@@ -357,7 +406,7 @@ impl Renderable for ArcGerberPrimitive {
         _transform_scaling: &Vector2<f64>,
         color: Color32,
         shape_number: Option<usize>,
-        _configuration: &RenderConfiguration,
+        configuration: &RenderConfiguration,
     ) {
         let Self {
             center,
@@ -393,6 +442,8 @@ impl Renderable for ArcGerberPrimitive {
                 kind: StrokeKind::Middle,
             },
         }));
+
+        draw_bbox!(self, configuration, painter, color, view, transform_matrix);
 
         // draw the shape number at the center of the arc, not at the origin of the arc, which for arcs with a
         // large radius but small sweep could be way off the screen.
@@ -490,6 +541,8 @@ impl Renderable for PolygonGerberPrimitive {
                 );
             }
         }
+
+        draw_bbox!(self, configuration, painter, color, view, transform_matrix);
 
         draw_shape_number(
             painter,
