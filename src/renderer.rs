@@ -5,7 +5,7 @@ use egui::epaint::emath::Align2;
 use egui::epaint::{
     Color32, ColorMode, FontId, Mesh, PathShape, PathStroke, Pos2, Rect, Shape, Stroke, StrokeKind, Vec2, Vertex,
 };
-use nalgebra::{Matrix3, Vector2};
+use nalgebra::{Matrix3, Point2, Vector2};
 
 use crate::geometry::{GerberTransform, Matrix3Pos2Ext, Matrix3TransformExt};
 use crate::layer::GerberPrimitive;
@@ -35,20 +35,23 @@ impl Default for RenderConfiguration {
     }
 }
 
-#[derive(Default)]
-pub struct GerberRenderer {}
+pub struct GerberRenderer<'a> {
+    configuration: &'a RenderConfiguration,
+    view: ViewState,
 
-impl GerberRenderer {
-    #[profiling::function]
-    pub fn paint_layer(
-        &self,
-        painter: &egui::Painter,
+    layer: &'a GerberLayer,
+
+    transform_matrix: Matrix3<f64>,
+    transform_scaling: Vector2<f64>,
+}
+
+impl<'a> GerberRenderer<'a> {
+    pub fn new(
+        configuration: &'a RenderConfiguration,
         view: ViewState,
-        layer: &GerberLayer,
-        base_color: Color32,
-        configuration: &RenderConfiguration,
         transform: &GerberTransform,
-    ) {
+        layer: &'a GerberLayer,
+    ) -> Self {
         let render_transform_matrix = transform.to_matrix();
         let image_transform_matrix = layer.image_transform().to_matrix();
 
@@ -57,13 +60,45 @@ impl GerberRenderer {
         // computing the transform_scaling from the matrix is expensive, so we cache it
         let transform_scaling = transform_matrix.get_scaling_factors();
 
-        for (index, primitive) in layer.primitives().iter().enumerate() {
-            let color = match configuration.use_unique_shape_colors {
+        Self {
+            configuration,
+            view,
+            layer,
+            transform_matrix,
+            transform_scaling,
+        }
+    }
+
+    /// converts gerber to screen coordinates, using the renderer transforms.
+    /// coordinates are in gerber units.
+    pub fn gerber_to_screen_coordinates(&self, position: &Point2<f64>) -> Pos2 {
+        let position = Pos2::new(position.x as f32, -(position.y as f32));
+
+        (self.view.translation
+            + self
+                .transform_matrix
+                .transform_pos2(position)
+                * self.view.scale)
+            .to_pos2()
+    }
+
+    #[profiling::function]
+    pub fn paint_layer(&self, painter: &egui::Painter, base_color: Color32) {
+        for (index, primitive) in self
+            .layer
+            .primitives()
+            .iter()
+            .enumerate()
+        {
+            let color = match self
+                .configuration
+                .use_unique_shape_colors
+            {
                 true => color::generate_pastel_color(index as u64),
                 false => base_color,
             };
 
-            let shape_number = match configuration.use_shape_numbering {
+            let shape_number = match self.configuration.use_shape_numbering {
                 true => Some(index),
                 false => None,
             };
@@ -71,48 +106,48 @@ impl GerberRenderer {
             match primitive {
                 GerberPrimitive::Circle(circle) => circle.render(
                     painter,
-                    &view,
-                    &transform_matrix,
-                    &transform_scaling,
+                    &self.view,
+                    &self.transform_matrix,
+                    &self.transform_scaling,
                     color,
                     shape_number,
-                    configuration,
+                    self.configuration,
                 ),
                 GerberPrimitive::Rectangle(rect) => rect.render(
                     painter,
-                    &view,
-                    &transform_matrix,
-                    &transform_scaling,
+                    &self.view,
+                    &self.transform_matrix,
+                    &self.transform_scaling,
                     color,
                     shape_number,
-                    configuration,
+                    self.configuration,
                 ),
                 GerberPrimitive::Line(line) => line.render(
                     painter,
-                    &view,
-                    &transform_matrix,
-                    &transform_scaling,
+                    &self.view,
+                    &self.transform_matrix,
+                    &self.transform_scaling,
                     color,
                     shape_number,
-                    configuration,
+                    self.configuration,
                 ),
                 GerberPrimitive::Arc(arc) => arc.render(
                     painter,
-                    &view,
-                    &transform_matrix,
-                    &transform_scaling,
+                    &self.view,
+                    &self.transform_matrix,
+                    &self.transform_scaling,
                     color,
                     shape_number,
-                    configuration,
+                    self.configuration,
                 ),
                 GerberPrimitive::Polygon(polygon) => polygon.render(
                     painter,
-                    &view,
-                    &transform_matrix,
-                    &transform_scaling,
+                    &self.view,
+                    &self.transform_matrix,
+                    &self.transform_scaling,
                     color,
                     shape_number,
-                    configuration,
+                    self.configuration,
                 ),
             }
         }

@@ -249,13 +249,14 @@ impl GerberViewerInstance {
                 draw_crosshair(&painter, self.ui_state.origin_screen_pos, Color32::BLUE);
                 draw_crosshair(&painter, self.ui_state.center_screen_pos, Color32::LIGHT_GRAY);
 
-                GerberRenderer::default().paint_layer(
-                    &painter,
-                    self.view_state,
-                    &self.gerber_layer,
-                    Color32::WHITE,
+                GerberRenderer::new(
                     &self.renderer_configuration,
+                    self.view_state,
                     &self.transform,
+                    &self.gerber_layer,
+                ).paint_layer(
+                    &painter,
+                    Color32::WHITE,
                 );
 
                 // if you want to display multiple layers, call `paint_layer` for each layer.
