@@ -364,13 +364,14 @@ impl DemoApp {
             Demo::new(DemoKind::EasyEdaUnclosedRegionTest1, "EasyEDA - Unclosed Region Test 1", include_str!("../assets/easyeda-unclosed-region-test-1.gbr"), Default::default()),
             Demo::new(DemoKind::LocalFile, "LocalFile", include_str!(r#"D:\Users\Hydra\Documents\DipTrace\Projects\SPRacingRXN1\Export\SPRacingRXN1-RevB-20240507-1510_gerberx2\TopSilk.gbr"#), Settings::local_file_settings()),
         ];
+        
+        let initial_demo_kind = DemoKind::Primary;
+        
+        let initial_demo = demos.iter().find(|demo| demo.kind == initial_demo_kind).unwrap();
+        let instance = GerberViewerInstance::new(&initial_demo);
+
         let mut instances = HashMap::new();
-
-        let first = demos.first().unwrap();
-        let kind = first.kind;
-        let instance = GerberViewerInstance::new(first);
-        instances.insert(kind, instance);
-
+        instances.insert(initial_demo_kind, instance);
 
         Self {
             demos,
