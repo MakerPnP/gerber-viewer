@@ -11,7 +11,7 @@ Possible log types:
 - `[fixed]` for any bug fixes.
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
-### v0.5.0 (unreleased)
+### v0.5.0 (2025-12-19)
 
 - [changed] Change the `GerberViewer` API (Migration: use `new` instead of `default`, just move some of the arguments from `paint_layer` to `new`)
 - [added] Added `gerber_to_screen_coordinates`. This allows you to draw on top or below the layer at the correct screen coordinates.
