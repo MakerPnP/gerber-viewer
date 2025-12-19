@@ -178,7 +178,10 @@ impl GerberViewerInstance {
     fn ui(&mut self, ui: &mut egui::Ui, frame_delta: f32) {
         egui::TopBottomPanel::bottom(ui.id().with("bottom_panel"))
             .show_inside(ui, |ui| {
-                ui.label(format!("Coordinates: {:?}", self.ui_state.cursor_gerber_coords));
+                let message = self.ui_state.cursor_gerber_coords
+                    .map(|coords| format!("X:{:.6}, Y:{:.6}", coords.x, coords.y))
+                    .unwrap_or("None".to_string());
+                ui.label(format!("Coordinates: {}", message));
             });
 
         egui::CentralPanel::default()
