@@ -21,23 +21,23 @@ edition = "2024"
 
 [dependencies]
 # Rendering (optional, see README.md)
-egui = { version = "0.32.0", optional = true }
+egui = { version = "0.33.0", optional = true }
 
 # Gerber files
-gerber-types = "0.6.0"
+gerber-types = "0.7.0"
 # currently un-released, using latest gerber_types with updates to support macro expressions
 #gerber-types = { git = "https://github.com/MakerPnP/gerber-types.git", rev = "bc303fa1d946933301d3459bef42a0c984683301"}
 #gerber-types = { path = "../gerber-types" }
 
 # Gerber parser (optional, see README.md)
-gerber_parser = { version = "0.3.1", optional = true }
+gerber_parser = { version = "0.4.0", optional = true }
 #gerber_parser = { git = "https://github.com/makerpnp/gerber-parser.git", rev = "fcad868d9e1423d49a5acdb9bfc37016b034f445", optional = true }
 #gerber_parser = { path = "../gerber-parser", optional = true }
 
 # Math
 rand = "0.9.1"
 lyon = "1.0"
-nalgebra = { version = "0.33.2" , default-features = false }
+nalgebra = { version = "0.34.1" , default-features = false }
 
 # Errors
 thiserror = "2.0.12"
@@ -71,10 +71,10 @@ testing = []
 profile-renderables = []
 
 [dev-dependencies]
-rstest = "0.25.0"
+rstest = "0.26.0"
 env_logger = "0.11.8"
 gerber_viewer = { path = ".", features = ["testing"] }
-criterion = "0.5"
+criterion = "0.8"
 rand = "0.9.1"
 
 [[bench]]

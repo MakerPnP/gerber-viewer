@@ -1,4 +1,6 @@
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use std::hint::black_box;
+
+use criterion::{Criterion, criterion_group, criterion_main};
 use gerber_viewer::{GerberTransform, Matrix3Point2Ext};
 use nalgebra::{Point2, Vector2};
 use rand::Rng;

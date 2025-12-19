@@ -1617,8 +1617,8 @@ mod circular_plotting_tests {
     use std::f64::consts::{FRAC_PI_2, PI};
 
     use gerber_types::{
-        Command, CoordinateFormat, CoordinateNumber, CoordinateOffset, Coordinates, DCode, GCode, InterpolationMode,
-        Operation, Unit,
+        Command, CoordinateFormat, CoordinateMode, CoordinateNumber, CoordinateOffset, Coordinates, DCode, GCode,
+        InterpolationMode, Operation, Unit, ZeroOmission,
     };
 
     use super::*;
@@ -1634,7 +1634,7 @@ mod circular_plotting_tests {
         let corner_radius: f64 = 5.0; // mm
         let line_width: f64 = 0.1; // mm
 
-        let format = CoordinateFormat::new(3, 5);
+        let format = CoordinateFormat::new(ZeroOmission::Leading, CoordinateMode::Absolute, 3, 5);
 
         let mut commands: Vec<Command> = Vec::new();
 
@@ -2009,8 +2009,8 @@ mod circle_aperture_tests {
     use std::f64::consts::PI;
 
     use gerber_types::{
-        Aperture, ApertureDefinition, Circle, Command, CoordinateFormat, CoordinateNumber, Coordinates, DCode,
-        ExtendedCode, FunctionCode, Operation, Unit,
+        Aperture, ApertureDefinition, Circle, Command, CoordinateFormat, CoordinateMode, CoordinateNumber, Coordinates,
+        DCode, ExtendedCode, FunctionCode, Operation, Unit, ZeroOmission,
     };
     use nalgebra::Point2;
 
@@ -2032,7 +2032,7 @@ mod circle_aperture_tests {
             hole_diameter: Some(hole_diameter),
         });
 
-        let format = CoordinateFormat::new(2, 4);
+        let format = CoordinateFormat::new(ZeroOmission::Leading, CoordinateMode::Absolute, 2, 4);
 
         // Create commands that would define and use this aperture
         let commands = vec![
