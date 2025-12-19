@@ -16,6 +16,7 @@ Possible log types:
 - [changed] Change the `GerberViewer` API (Migration: use `new` instead of `default`, just move some of the arguments from `paint_layer` to `new`)
 - [added] Added `gerber_to_screen_coordinates`. This allows you to draw on top or below the layer at the correct screen coordinates.
   The original use-case of this is to allow panel-unit numbers to be drawn on top of a panel outline gerber.
+- [changed] Bump gerber-parser, gerber-types, egui and other dependencies.
 
 ### v0.4.4 (2025-07-25)
 
