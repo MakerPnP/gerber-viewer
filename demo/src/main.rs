@@ -481,6 +481,7 @@ impl eframe::App for DemoApp {
                 .default_size([400.0, 400.0])
                 .open(&mut open)
                 .resizable(true)
+                .scroll(true)
                 .constrain_to(central_panel_rect)
                 .show(ctx, |ui|{
 
