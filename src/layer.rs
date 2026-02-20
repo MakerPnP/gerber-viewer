@@ -105,7 +105,7 @@ impl GerberLayer {
     }
 
     #[allow(unused)]
-    pub(crate) fn primitives(&self) -> &[GerberPrimitive] {
+    pub fn primitives(&self) -> &[GerberPrimitive] {
         &self.gerber_primitives
     }
 
@@ -1429,7 +1429,7 @@ enum ApertureKind {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) enum GerberPrimitive {
+pub enum GerberPrimitive {
     Circle(CircleGerberPrimitive),
     Rectangle(RectangleGerberPrimitive),
     Line(LineGerberPrimitive),
@@ -1438,14 +1438,14 @@ pub(crate) enum GerberPrimitive {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct CircleGerberPrimitive {
+pub struct CircleGerberPrimitive {
     pub center: Point2<f64>,
     pub diameter: f64,
     pub exposure: Exposure,
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct RectangleGerberPrimitive {
+pub struct RectangleGerberPrimitive {
     pub origin: Point2<f64>,
     pub width: f64,
     pub height: f64,
@@ -1453,7 +1453,7 @@ pub(crate) struct RectangleGerberPrimitive {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct LineGerberPrimitive {
+pub struct LineGerberPrimitive {
     pub start: Point2<f64>,
     pub end: Point2<f64>,
     pub width: f64,
@@ -1461,14 +1461,14 @@ pub(crate) struct LineGerberPrimitive {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct PolygonGerberPrimitive {
+pub struct PolygonGerberPrimitive {
     pub center: Point2<f64>,
     pub exposure: Exposure,
     pub geometry: Arc<PolygonGeometry>,
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct ArcGerberPrimitive {
+pub struct ArcGerberPrimitive {
     pub center: Point2<f64>,
     pub radius: f64,
     pub width: f64,
