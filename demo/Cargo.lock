@@ -1327,9 +1327,9 @@ dependencies = [
 
 [[package]]
 name = "gerber_parser"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a3767d5cdca2992d9dcae6bcebfa2ae9102d6f3092b0d65a79b91b6e6ab8d7a7"
+checksum = "73f675010c0dda2e38b3f276c45d96e743758929d4e6ae81052dcde35daf8dc1"
 dependencies = [
  "anyhow",
  "gerber-types",
