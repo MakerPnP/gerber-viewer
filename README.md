@@ -173,6 +173,13 @@ https://github.com/MakerPnP/gerber-types/network/dependents
 
 See the github issue tracker or join the [MakerPnP discord server](https://discord.gg/ffwj5rKZuf).
 
+## License
+
+Available under APACHE *or* MIT licenses, the same as the gerber-types crate.
+
+* [APACHE](LICENSE-APACHE)
+* [MIT](LICENSE-MIT)
+
 <!-- Badges -->
 
 [build-status]: https://github.com/makerpnp/gerber-viewer/actions/workflows/ci.yml
