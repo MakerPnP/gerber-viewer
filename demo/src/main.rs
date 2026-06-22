@@ -3,7 +3,7 @@ use std::io::BufReader;
 use std::time::Instant;
 use eframe::emath::Rect;
 use eframe::epaint::Color32;
-use egui::{Frame, ViewportBuilder};
+use egui::{Frame, Ui, ViewportBuilder};
 use nalgebra::{Point2, Vector2, Vector3};
 use gerber_viewer::gerber_parser::parse;
 use gerber_viewer::{draw_arrow, draw_crosshair, draw_marker, draw_outline, GerberLayer, GerberRenderer, RenderConfiguration, ToPosition, UiState, ViewState};
@@ -386,8 +386,7 @@ impl DemoApp {
 }
 
 impl eframe::App for DemoApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-
+    fn ui(&mut self, ui: &mut Ui, _frame: &mut eframe::Frame) {
         let now = Instant::now();
         let frame_delta = now.duration_since(self.last_frame_time).as_secs_f32();
         self.last_frame_time = now;
@@ -396,17 +395,17 @@ impl eframe::App for DemoApp {
         // Build a UI
         //
 
-        egui::TopBottomPanel::top("top_panel")
+        egui::Panel::top("top_panel")
             .resizable(true)
-            .show(ctx, |ui| {
+            .show_inside(ui, |ui| {
                 ui.horizontal_centered(|ui| {
                     ui.heading("Gerber Viewer Demo");
                     ui.label("by Dominic Clifton (2025)");
                 });
         });
 
-        egui::SidePanel::left("left_panel")
-            .show(ctx, |ui| {
+        egui::Panel::left("left_panel")
+            .show_inside(ui, |ui| {
                 ui.heading("Available demos");
                 ui.separator();
                 ui.vertical(|ui| {
@@ -433,11 +432,11 @@ impl eframe::App for DemoApp {
 
             let demo = self.demos.iter_mut().find(|candidate|candidate.kind == kind).unwrap();
 
-            egui::SidePanel::right("right_panel")
-                .default_width(320.0)
-                .min_width(200.0)
+            egui::Panel::right("right_panel")
+                .default_size(320.0)
+                .min_size(200.0)
                 .resizable(true)
-                .show(ctx, |ui| {
+                .show_inside(ui, |ui| {
                     egui::Sides::new()
                         .show(ui,|ui|{
                             ui.heading(demo.name.to_string());
@@ -467,7 +466,7 @@ impl eframe::App for DemoApp {
         }
 
         let mut central_panel_rect = None;
-        egui::CentralPanel::default().show(ctx, |ui| {
+        egui::CentralPanel::default().show_inside(ui, |ui| {
             ui.centered_and_justified(|ui| {
                 central_panel_rect = Some(ui.clip_rect());
             });
@@ -475,6 +474,7 @@ impl eframe::App for DemoApp {
 
         let central_panel_rect = central_panel_rect.unwrap();
         let mut close_list = vec![];
+        let ctx = ui.ctx();
         for (kind, instance) in self.instances.iter_mut() {
 
             let title = self.demos.iter().find(|candidate| candidate.kind == *kind).unwrap().name;
