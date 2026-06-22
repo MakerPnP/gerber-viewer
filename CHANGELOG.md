@@ -11,6 +11,10 @@ Possible log types:
 - `[fixed]` for any bug fixes.
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
+### v0.6.0 (2026-06-22)
+
+- [changed] Support egui 0.34.0
+
 ### v0.5.0 (2025-12-19)
 
 - [changed] Change the `GerberViewer` API (Migration: use `new` instead of `default`, just move some of the arguments from `paint_layer` to `new`)
