@@ -19,7 +19,7 @@ jobs:
       matrix:
         toolchain:
           - "stable"
-          - "1.88.0"
+          - "1.92.0"
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
