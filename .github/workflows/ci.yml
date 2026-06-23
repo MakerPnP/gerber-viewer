@@ -53,4 +53,8 @@ jobs:
         with:
           toolchain: nightly
           components: rustfmt
-      - run: cargo +nightly fmt --all --check
+      - name: rustfmt
+        run: cargo +nightly fmt --all --check
+      - name: rustfmt (demo)
+        working-directory: ./demo
+        run: cargo +nightly fmt --all --check
