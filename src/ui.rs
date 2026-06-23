@@ -69,7 +69,10 @@ impl UiState {
         let scroll_delta = ui.input(|i| {
             let mut scroll = egui::Vec2::ZERO;
             for event in i.raw.events.iter() {
-                if let egui::Event::MouseWheel { delta, .. } = event {
+                if let egui::Event::MouseWheel {
+                    delta, ..
+                } = event
+                {
                     scroll += *delta;
                 }
             }
