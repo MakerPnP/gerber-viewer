@@ -11,6 +11,10 @@ Possible log types:
 - `[fixed]` for any bug fixes.
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
+### v0.6.1 (2026-06-23)
+
+- [fixed] Fix mouse wheen zooming caused by an egui 0.34.0 removal of `raw_scroll_delta`.
+
 ### v0.6.0 (2026-06-22)
 
 - [changed] Support egui 0.34.0

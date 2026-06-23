@@ -60,11 +60,25 @@ impl UiState {
         }
 
         let zoom_factor = 1.1;
-        let scroll_delta = ui.input(|i| i.smooth_scroll_delta.y);
+        //let scroll_delta = ui.input(|i| i.raw_scroll_delta);
 
-        if scroll_delta != 0.0 {
+        /*
+            HACK: egui 0.34 removed access to raw scroll, now we need to O(n) events accumulate it.. This doesn't do correct unit scaling..
+            source: https://github.com/emilk/egui/issues/8051
+        */
+        let scroll_delta = ui.input(|i| {
+            let mut scroll = egui::Vec2::ZERO;
+            for event in i.raw.events.iter() {
+                if let egui::Event::MouseWheel { delta, .. } = event {
+                    scroll += *delta;
+                }
+            }
+            scroll
+        });
+
+        if scroll_delta.y != 0.0 {
             let old_scale = view_state.scale;
-            let new_scale = if scroll_delta > 0.0 {
+            let new_scale = if scroll_delta.y > 0.0 {
                 old_scale * zoom_factor
             } else {
                 old_scale / zoom_factor
