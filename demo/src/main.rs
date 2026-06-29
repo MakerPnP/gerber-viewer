@@ -183,7 +183,7 @@ impl GerberViewerInstance {
     }
 
     fn ui(&mut self, ui: &mut egui::Ui, frame_delta: f32) {
-        egui::TopBottomPanel::bottom(ui.id().with("bottom_panel")).show_inside(ui, |ui| {
+        egui::Panel::bottom(ui.id().with("bottom_panel")).show(ui, |ui| {
             let message = self
                 .ui_state
                 .cursor_gerber_coords
@@ -194,7 +194,7 @@ impl GerberViewerInstance {
 
         egui::CentralPanel::default()
             .frame(Frame::new())
-            .show_inside(ui, |ui| {
+            .show(ui, |ui| {
                 //
                 // Animate the gerber view by rotating it.
                 //
@@ -547,14 +547,14 @@ impl eframe::App for DemoApp {
 
         egui::Panel::top("top_panel")
             .resizable(true)
-            .show_inside(ui, |ui| {
+            .show(ui, |ui| {
                 ui.horizontal_centered(|ui| {
                     ui.heading("Gerber Viewer Demo");
                     ui.label("by Dominic Clifton (2025)");
                 });
             });
 
-        egui::Panel::left("left_panel").show_inside(ui, |ui| {
+        egui::Panel::left("left_panel").show(ui, |ui| {
             ui.heading("Available demos");
             ui.separator();
             ui.vertical(|ui| {
@@ -593,7 +593,7 @@ impl eframe::App for DemoApp {
                 .default_size(320.0)
                 .min_size(200.0)
                 .resizable(true)
-                .show_inside(ui, |ui| {
+                .show(ui, |ui| {
                     egui::Sides::new()
                         .show(ui,|ui|{
                             ui.heading(demo.name.to_string());
@@ -623,7 +623,7 @@ impl eframe::App for DemoApp {
         }
 
         let mut central_panel_rect = None;
-        egui::CentralPanel::default().show_inside(ui, |ui| {
+        egui::CentralPanel::default().show(ui, |ui| {
             ui.centered_and_justified(|ui| {
                 central_panel_rect = Some(ui.clip_rect());
             });
