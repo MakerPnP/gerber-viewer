@@ -11,6 +11,10 @@ Possible log types:
 - `[fixed]` for any bug fixes.
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
+### v0.8.0
+
+- [changed] Support egui 0.36.0
+
 ### v0.7.0 (2026-06-29)
 
 - [changed] Support egui 0.35.0
