@@ -1,5 +1,6 @@
 #[cfg(feature = "egui")]
 use egui::epaint::Color32;
+
 use crate::types::Exposure;
 
 #[cfg(feature = "egui")]
