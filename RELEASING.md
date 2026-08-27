@@ -4,6 +4,11 @@ Check CI status:
 
 [![Build status][build-status-badge]][build-status]
 
+Format code:
+
+    $ ./cargo_all +nightly fmt
+    $ git commit -m "Format with rustfmt"
+
 Set variables:
 
     $ export VERSION=X.Y.Z
