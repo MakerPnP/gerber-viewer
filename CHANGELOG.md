@@ -14,6 +14,7 @@ Possible log types:
 ### v0.8.0
 
 - [changed] Support egui 0.36.0
+- [changed] Bump other dependencies.
 
 ### v0.7.0 (2026-06-29)
 

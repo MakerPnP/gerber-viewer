@@ -1,12 +1,11 @@
 #[cfg(feature = "egui")]
 use egui::epaint::Color32;
-
 use crate::types::Exposure;
 
 #[cfg(feature = "egui")]
 pub fn generate_pastel_color(index: u64) -> Color32 {
     use rand::prelude::SmallRng;
-    use rand::{Rng, SeedableRng};
+    use rand::{RngExt, SeedableRng};
 
     let mut rng = SmallRng::seed_from_u64(index);
 
