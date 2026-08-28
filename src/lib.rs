@@ -28,6 +28,7 @@ pub use layer::*;
 #[cfg(feature = "egui")]
 pub use renderer::*;
 pub use spacial::*;
+pub use types::*;
 #[cfg(feature = "egui")]
 pub use ui::*;
 
