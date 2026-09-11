@@ -10,11 +10,11 @@ G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
 G01*
 
 G04 try these commands for image transforms *
-G04 %MIB1*% *
-G04 %IR180*% *
-G04 %SFA1.5B3*% *
-G04 %OFA60B60*% *
-G04 %ASAYBX*% *
+G04 \u0025MIB1\u002A\u0025 *
+G04 \u0025IR180\u002A\u0025 *
+G04 \u0025SFA1.5B3\u002A\u0025 *
+G04 \u0025OFA60B60\u002A\u0025 *
+G04 \u0025ASAYBX\u002A\u0025 *
 
 %AMRoundRect*
 0 Rectangle with rounded corners*
@@ -662,7 +662,7 @@ G04 --- ASCII 36 ($) ---*
 20,1,$1,-3x$2,-1x$2,-3x$2,-4x$2,$3*
 20,1,$1,-3x$2,-4x$2,3x$2,-4x$2,$3*
 %
-G04 --- ASCII 37 (%) ---*
+G04 --- ASCII 37 (\u0025) ---*
 %AMVECTORFONT_37*
 0 Diagonal
 20,1,$1,-4x$2,8x$2,4x$2,-8x$2,$3*
@@ -702,7 +702,7 @@ G04 --- ASCII 41 ()) ---*
 20,1,$1,-2x$2,-8x$2,2x$2,0x$2,$3*
 20,1,$1,2x$2,0x$2,-2x$2,8x$2,$3*
 %
-G04 --- ASCII 42 (*) ---*
+G04 --- ASCII 42 (\u002A) ---*
 %AMVECTORFONT_42*
 20,1,$1,0x$2,-4x$2,0x$2,4x$2,$3*
 20,1,$1,-4x$2,0x$2,4x$2,0x$2,$3*
@@ -1337,7 +1337,7 @@ G04 ============================================================================
 G04 ============================================================================================*
 G04 --- Drawing Commands ---*
 G04 Write "Hello World! 123" centered at (0,0)*
-G04 Character spacing is 10 units * scale = 10 * 0.1 = 1.0 mm*
+G04 Character spacing is 10 units \u002A scale = 10 \u002A 0.1 = 1.0 mm*
 G04 ============================================================================================*
 
 G04 --- H (D172) ---*

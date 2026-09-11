@@ -9,7 +9,7 @@ G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
 %LPD*%
 G01*
 
-G04 Vector font on a 20 * 20 grid with center at (0,0), macro name format: "VECTORFONT_<ASCII-DECIMAL-CODE>"*
+G04 Vector font on a 20 \u002A 20 grid with center at (0,0), macro name format: "VECTORFONT_<ASCII-DECIMAL-CODE>"*
 %AMVECTORFONT_77*
 0 $1 = width
 0 $2 = scale
